@@ -16,7 +16,8 @@ struct LifecycleConstants {
     static let START = "start"
     static let PAUSE = "pause"
     static let MAX_SESSION_LENGTH_SECONDS = 86400.0 * 7.0 // 7 days
-
+    static let DEFAULT_LIFECYCLE_TIMEOUT = 300
+    
     struct Keys {
         static let ACTION_KEY = "action"
         static let ADDITIONAL_CONTEXT_DATA = "additionalcontextdata"
@@ -29,10 +30,12 @@ struct LifecycleConstants {
         static let LAUNCHES = "Launches"
         static let UPGRADE_DATE = "UpgradeDate"
         static let LAUNCHES_SINCE_UPGRADE = "LaunchesAfterUpgrade"
+        static let ADVERTISING_IDENTIFIER = "advertisingidentifier"
     }
 
     struct DataStoreKeys {
         static let PERSISTED_CONTEXT = "PersistedContext"
         static let LIFECYCLE_DATA = "LifecycleData"
+        static let LAST_VERSION = "LastVersion"
     }
 }

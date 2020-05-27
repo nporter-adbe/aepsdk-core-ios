@@ -26,18 +26,16 @@ struct LifecycleState {
     mutating func start(startDate: Date, data: [String: Any], configurationSharedState: [String: Any], identitySharedState: [String: Any]?) {
         let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
         
-        // Build LifecycleMetrics
+        // Build default LifecycleMetrics
         metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
         metricsBuilder = metricsBuilder?.addDeviceData()
         metricsBuilder = metricsBuilder?.addLaunchData()
         let defaultMetrics = metricsBuilder?.build()
         checkForApplicationUpgrade(appId: defaultMetrics?.appId)
         
-        let sessionTimeoutInSeconds = configurationSharedState[ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT] as? Int ?? Int(LifecycleConstants.MAX_SESSION_LENGTH_SECONDS)
+        let sessionTimeoutInSeconds = TimeInterval(configurationSharedState[ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT] as? Int ?? Int(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT))
         
-        let previousSessionInfo = lifecycleSession.start(startDate: startDate, sessionTimeoutInSeconds: TimeInterval(sessionTimeoutInSeconds), coreMetrics: defaultMetrics ?? LifecycleMetrics())
-        
-        guard previousSessionInfo != nil else { return }
+        guard let previousSessionInfo = lifecycleSession.start(startDate: startDate, sessionTimeoutInSeconds: sessionTimeoutInSeconds, coreMetrics: defaultMetrics ?? LifecycleMetrics()) else { return }
         
         var lifecycleData = LifecycleContextData()
         
@@ -46,22 +44,31 @@ struct LifecycleState {
             metricsBuilder = metricsBuilder?.addInstallData()
             metricsBuilder = metricsBuilder?.addLaunchData()
             metricsBuilder = metricsBuilder?.addDeviceData()
-            
-            lifecycleData.lifecycleMetrics = metricsBuilder?.build()
         } else { // upgrade and launch hits
             // use metrics builder
+            metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
+            metricsBuilder = metricsBuilder?.addLaunchData()
+            metricsBuilder = metricsBuilder?.addUpgradeData(upgrade: previousSessionInfo.isCrash)
+            metricsBuilder = metricsBuilder?.addCrashData(previousSessionCrash: previousSessionInfo.isCrash, osVersion: sessionContainer?.osVersion ?? "", appId: sessionContainer?.appId ?? "")
+            metricsBuilder = metricsBuilder?.addLaunchData()
+            metricsBuilder = metricsBuilder?.addDeviceData()
+            
+            let sessionContextData = lifecycleSession.getSessionData(startDate: startDate, sessionTimeoutInSeconds: sessionTimeoutInSeconds, previousSessionInfo: previousSessionInfo)
+            lifecycleData.sessionContextData = sessionContextData
         }
+        
+        lifecycleData.lifecycleMetrics = metricsBuilder?.build()
         
         if let additionalContextData = data[LifecycleConstants.Keys.ADDITIONAL_CONTEXT_DATA] as? [String: String] {
             lifecycleData.additionalContextData = additionalContextData
         }
         
-//        if let advertisingIdentifier = identitySharedState?[LifecycleConstants.Keys.ADVERTISING_IDENTIFIER] as? String {
-//            lifecycleData[LifecycleConstants.Keys.ADVERTISING_IDENTIFIER] = advertisingIdentifier
-//        }
+        if let advertisingIdentifier = identitySharedState?[LifecycleConstants.Keys.ADVERTISING_IDENTIFIER] as? String {
+            lifecycleData.advertisingIdentifier = advertisingIdentifier
+        }
         
         // Update lifecycle context data and persist lifecycle info into local storage
-        lifecycleContextData = lifecycleData
+        lifecycleContextData = lifecycleContextData?.merging(with: lifecycleData, uniquingKeysWith: { (_, new) in new })
         persistLifecycleContextData(startDate: startDate)
     }
     
@@ -94,13 +101,12 @@ struct LifecycleState {
     }
     
     private func isInstall() -> Bool {
-        // TODO
-        return false
+        return !dataStore.contains(key: LifecycleConstants.Keys.INSTALL_DATE)
     }
     
     private func isUpgrade() -> Bool {
-        // TODO
-        return false
+        let appVersion = AEPServiceProvider.shared.systemInfoService.getApplicationVersionNumber()
+        return dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION) != appVersion
     }
     
     private func persistLifecycleContextData(startDate: Date) {
