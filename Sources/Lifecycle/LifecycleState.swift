@@ -44,8 +44,8 @@ struct LifecycleState {
             metricsBuilder = metricsBuilder?.addInstallData()
             metricsBuilder = metricsBuilder?.addLaunchData()
             metricsBuilder = metricsBuilder?.addDeviceData()
-        } else { // upgrade and launch hits
-            // use metrics builder
+        } else {
+            // upgrade and launch hits
             metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
             metricsBuilder = metricsBuilder?.addLaunchData()
             metricsBuilder = metricsBuilder?.addUpgradeData(upgrade: previousSessionInfo.isCrash)
@@ -68,7 +68,7 @@ struct LifecycleState {
         }
         
         // Update lifecycle context data and persist lifecycle info into local storage
-        lifecycleContextData = lifecycleContextData?.merging(with: lifecycleData, uniquingKeysWith: { (_, new) in new })
+        lifecycleContextData = lifecycleContextData?.merging(with: lifecycleData, uniquingKeysWith: { (_, new) in new } )
         persistLifecycleContextData(startDate: startDate)
     }
     
@@ -96,7 +96,7 @@ struct LifecycleState {
             dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: lifecycleData)
         } else {
             // if we have the map in memory update it
-            lifecycleContextData = lifecycleData?.merging(with: lifecycleData, uniquingKeysWith: { (_, new) in new })
+            lifecycleContextData = lifecycleData?.merging(with: lifecycleData, uniquingKeysWith: { (_, new) in new } )
         }
     }
     
@@ -110,13 +110,15 @@ struct LifecycleState {
     }
     
     private func persistLifecycleContextData(startDate: Date) {
-        dataStore.setObject(key: "todo", value: lifecycleContextData)
-        dataStore.setObject(key: "todo", value: startDate)
-        // TODO: get app version and set in store
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: lifecycleContextData)
+        dataStore.setObject(key: LifecycleConstants.Keys.LAST_LAUNCH_DATE, value: startDate)
+        let appVersion = AEPServiceProvider.shared.systemInfoService.getApplicationVersionNumber()
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: appVersion)
     }
     
     private func getPersistedContextData() -> LifecycleContextData? {
-        return nil
+        let contextData: LifecycleContextData? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA)
+        return contextData
     }
     
     private mutating func getContextData() -> LifecycleContextData? {
