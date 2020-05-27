@@ -30,6 +30,7 @@ struct ConfigurationConstants {
         static let PERSISTED_APPID = "config.appID"
         static let IS_INTERNAL_EVENT = "config.isinternalevent"
         static let CONFIG_CACHE_PREFIX = "cached.config."
+        static let LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout"
     }
 
     struct Privacy {

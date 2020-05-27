@@ -33,7 +33,7 @@ struct LifecycleSession {
     ///   - coreData: core data generated from the `LifecycleMetricsBuilder`
     ///   - Returns: `LifecycleSessionInfo` struct containing previous session's data, nil if the previous session is resumed, or if lifecycle has already run
     @discardableResult
-    mutating func start(startDate: Date, sessionTimeoutInSeconds: TimeInterval, coreData: [String: String]) -> LifecycleSessionInfo? {
+    mutating func start(startDate: Date, sessionTimeoutInSeconds: TimeInterval, coreMetrics: LifecycleMetrics) -> LifecycleSessionInfo? {
         guard !lifecycleHasRun else { return nil }
         lifecycleHasRun = true
         
@@ -63,8 +63,8 @@ struct LifecycleSession {
         sessionContainer?.pauseDate = nil
         sessionContainer?.successfulClose = false
         sessionContainer?.launches += 1
-        sessionContainer?.osVersion = coreData[LifecycleConstants.Keys.OPERATING_SYSTEM]
-        sessionContainer?.appId = coreData[LifecycleConstants.Keys.APP_ID]
+        sessionContainer?.osVersion = coreMetrics.operatingSystem
+        sessionContainer?.appId = coreMetrics.appId
         
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: sessionContainer)
         return LifecycleSessionInfo(startDate: previousSessionStartDate, pauseDate: previousSessionPauseDate, isCrash: previousSessionCrashed)
