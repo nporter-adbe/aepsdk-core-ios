@@ -95,9 +95,12 @@ struct LifecycleMetricsBuilder {
     /// - Hour of the day
     /// Return: `LifecycleMetricsBuilder` returns the mutated builder
     mutating func addLaunchEventData() -> LifecycleMetricsBuilder {
-        if let launches = dataStore.getInt(key: KEYS.LAUNCHES) {
-            lifecycleMetrics.launches = launches
+        if let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT) {
+            lifecycleMetrics.launches = sessionContainer?.launches
         }
+//        if let launches = dataStore.getInt(key: KEYS.LAUNCHES) {
+//            lifecycleMetrics.launches = launches
+//        }
         
         let currentDateComponents = Calendar.current.dateComponents([.weekday, .hour], from: self.date)
         lifecycleMetrics.launchEvent = true

@@ -25,9 +25,9 @@ class LifecycleStateTests: XCTestCase {
     
     override func setUp() {
         setupDates()
+        setupMockSystemInfoService()
         dataStore.removeAll()
         lifecycleState = LifecycleState(dataStore: dataStore)
-        AEPServiceProvider.shared.systemInfoService = MockSystemInfoService()
     }
     
     private func setupDates() {
@@ -37,6 +37,21 @@ class LifecycleStateTests: XCTestCase {
         currentDateMinusTenMin = Calendar.current.date(byAdding: .minute, value: -10, to: currentDate)
         currentDateMinusOneHour = Calendar.current.date(byAdding: .hour, value: -1, to: currentDate)
         currentDateMinusOneDay = Calendar.current.date(byAdding: .day, value: -1, to: currentDate)
+    }
+    
+    private func setupMockSystemInfoService() {
+        let mockSystemInfoService = MockSystemInfoService()
+        mockSystemInfoService.runMode = "Application"
+        mockSystemInfoService.mobileCarrierName = "Test Carrier"
+        mockSystemInfoService.applicationName = "Test app name"
+        mockSystemInfoService.applicationBuildNumber = "12345"
+        mockSystemInfoService.applicationVersionNumber = "1.1.1"
+        mockSystemInfoService.deviceName = "Test device name"
+        mockSystemInfoService.operatingSystemName = "Test OS"
+        mockSystemInfoService.activeLocaleName = "en-US"
+        mockSystemInfoService.displayInformation = NativeDisplayInformation()
+       
+        AEPServiceProvider.shared.systemInfoService = mockSystemInfoService
     }
     
     /// Happy path testing start
@@ -59,6 +74,331 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertNil(actualContext.pauseDate)
         XCTAssertEqual(mockAppVersion, dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION))
     }
+    
+    func testPreviousSessionCrashed() {
+        // setup
+        let osVersion = "iOS 13.0"
+        let appId = "app_id_123"
+        
+        dataStore.setObject(key: LifecycleConstants.Keys.INSTALL_DATE, value: currentDateMinusOneDay)
+        dataStore.setObject(key: LifecycleConstants.Keys.LAST_LAUNCH_DATE, value: Date(timeIntervalSince1970: 0))
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: "1.1.0")
+        
+        var persistedContext = LifecyclePersistedContext()
+        persistedContext.startDate = currentDateMinusTenMin
+        persistedContext.successfulClose = false
+        persistedContext.osVersion = osVersion
+        persistedContext.appId = appId
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
+        
+        // test
+        lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
+        
+        // verify
+        let systemInfoService = AEPServiceProvider.shared.systemInfoService
+        let actualContextData = lifecycleState.getContextData()
+        
+        XCTAssertTrue((actualContextData?.lifecycleMetrics!.crashEvent)!)
+        XCTAssertEqual(actualContextData?.lifecycleMetrics?.previousOsVersion, osVersion)
+        XCTAssertEqual(actualContextData?.lifecycleMetrics?.previousAppId, appId)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.appId)
+        XCTAssertEqual(systemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.crashEvent ?? false)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.dailyEngagedEvent ?? false)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.dayOfTheWeek)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.hourOfTheDay)
+        XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.daysSinceFirstLaunch)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.daysSinceLastLaunch)
+        XCTAssertNotNil(actualContextData?.sessionContextData?[LifecycleConstants.Keys.IGNORED_SESSION_LENGTH])
+        XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.launches)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.launchEvent ?? false)
+        XCTAssertEqual(systemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.monthlyEngagedEvent ?? false)
+        XCTAssertEqual(osVersion, actualContextData?.lifecycleMetrics?.previousOsVersion)
+        XCTAssertEqual(appId, actualContextData?.lifecycleMetrics?.previousAppId)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.deviceResolution)
+        XCTAssertEqual(systemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.upgradeEvent ?? false)
+        XCTAssertFalse(actualContextData?.lifecycleMetrics?.installEvent ?? true)
+        
+    }
+    
+    func testStartAppResumeVersionUpgradeNoLifecycleInMemory() {
+        // setup
+        var persistedContext = LifecyclePersistedContext()
+        persistedContext.pauseDate = currentDateMinusOneSecond
+        persistedContext.startDate = currentDateMinusTenMin
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: "1.1.1")
+        
+        let expectedAppId = "new-app-id"
+        var contextData = LifecycleContextData()
+        contextData.lifecycleMetrics = LifecycleMetrics()
+        contextData.lifecycleMetrics?.appId = expectedAppId
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
+        
+        // test
+        lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
+        
+        // verify
+        let actualContextData = lifecycleState.getContextData()
+        XCTAssertEqual(expectedAppId, actualContextData?.lifecycleMetrics?.appId)
+    }
+    
+    func testAppResumeVersionUpgradeLifecycleIsInMemory() {
+        // setup
+        let expectedAppId = "a-different-app-id"
+        var contextData = LifecycleContextData()
+        contextData.lifecycleMetrics = LifecycleMetrics()
+        contextData.lifecycleMetrics?.appId = expectedAppId
+        
+        lifecycleState.lifecycleContextData = contextData
+        
+        // test
+        lifecycleState.start(startDate: currentDate,
+                             data: [:],
+                             configurationSharedState: [ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT: 200],
+                             identitySharedState: [:])
+        
+        // verify
+        let systemInfoService = AEPServiceProvider.shared.systemInfoService
+        let actualContextData = lifecycleState.getContextData()
+        
+        XCTAssertEqual("Test app name 12345 (1.1.1)", actualContextData?.lifecycleMetrics?.appId)
+        XCTAssertEqual(systemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.dailyEngagedEvent ?? false)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.dayOfTheWeek)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.hourOfTheDay)
+        XCTAssertEqual(systemInfoService.getDeviceName(), actualContextData?.lifecycleMetrics?.deviceName)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.installDate)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.installEvent ?? false)
+        XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.launches)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.launchEvent ?? false)
+        XCTAssertEqual(systemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.monthlyEngagedEvent ?? false)
+        XCTAssertEqual(systemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics?.operatingSystem)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.deviceResolution)
+        XCTAssertEqual(systemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
+        XCTAssertFalse(actualContextData?.lifecycleMetrics?.upgradeEvent ?? true)
+        XCTAssertFalse(actualContextData?.lifecycleMetrics?.crashEvent ?? true)
+    }
+    
+    func testStartAppResumeVersionsAreSame() {
+        // setup
+        let appName = "test app name"
+        let testAppVersion = "1.1.0"
+        let expectedAppId = "\(appName) \(testAppVersion)"
+        
+        var persistedContext = LifecyclePersistedContext()
+        persistedContext.pauseDate = currentDateMinusOneSecond
+        persistedContext.startDate = currentDateMinusTenMin
+        
+        var contextData = LifecycleContextData()
+        contextData.lifecycleMetrics = LifecycleMetrics()
+        contextData.lifecycleMetrics?.appId = expectedAppId
+        
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: "1.1.1")
+        
+        
+        // test
+        lifecycleState.start(startDate: currentDate,
+                             data: [:],
+                             configurationSharedState: [ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT: 200],
+                             identitySharedState: [:])
+        
+        // verify
+        let actualContextData = lifecycleState.getContextData()
+        XCTAssertEqual(expectedAppId, actualContextData?.lifecycleMetrics?.appId)
+    }
 
-
+    func testStartOverTimeoutAdditionalData() {
+        // setup
+        let appVersion = "1.1.1"
+        
+        var persistedContext = LifecyclePersistedContext()
+        persistedContext.pauseDate = currentDateMinusTenMin
+        persistedContext.startDate = currentDateMinusOneHour
+        persistedContext.successfulClose = true
+        
+        dataStore.setObject(key: LifecycleConstants.Keys.INSTALL_DATE, value: currentDateMinusOneDay)
+        dataStore.setObject(key: LifecycleConstants.Keys.LAST_LAUNCH_DATE, value: currentDateMinusTenMin)
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: appVersion)
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
+        
+        let additionalData = ["testKey1": "testVal1"]
+        
+        // test
+        lifecycleState.start(startDate: currentDate,
+                             data: additionalData,
+                             configurationSharedState: [ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT: 200],
+                             identitySharedState: [:])
+        
+        // verify
+        let systemInfoService = AEPServiceProvider.shared.systemInfoService
+        let actualContextData = lifecycleState.getContextData()
+        let actualContext: LifecyclePersistedContext! = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
+        let lastUsedDate: Date = dataStore.getObject(key: LifecycleConstants.Keys.LAST_LAUNCH_DATE)!
+        
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.appId)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.deviceResolution)
+        XCTAssertEqual(systemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
+        XCTAssertEqual(systemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics?.operatingSystem)
+        XCTAssertEqual(systemInfoService.getDeviceName(), actualContextData?.lifecycleMetrics?.deviceName)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.dayOfTheWeek)
+        XCTAssertNotNil(actualContextData?.lifecycleMetrics?.hourOfTheDay)
+        XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.launches)
+        XCTAssertTrue(actualContextData?.lifecycleMetrics?.launchEvent ?? false)
+        XCTAssertEqual(systemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
+        XCTAssertEqual(systemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
+        XCTAssertEqual("3000", actualContextData?.sessionContextData?[LifecycleConstants.Keys.PREVIOUS_SESSION_LENGTH])
+        XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.daysSinceFirstLaunch)
+        XCTAssertEqual(0, actualContextData?.lifecycleMetrics?.daysSinceLastLaunch)
+        XCTAssertEqual(1, actualContext.launches)
+        XCTAssertEqual(currentDate, lastUsedDate)
+        XCTAssertEqual(currentDate, actualContext.startDate)
+        XCTAssertEqual(appVersion, dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION))
+        XCTAssertFalse(actualContext.successfulClose ?? true)
+    }
+    
+    // MARK: Pause(...) tests
+    func testPauseSimple() {
+        // test
+        lifecycleState.pause(pauseDate: currentDate)
+        
+        // verify
+        let actualContext: LifecyclePersistedContext! = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
+        XCTAssertTrue(actualContext.successfulClose ?? false)
+        XCTAssertEqual(currentDate, actualContext.pauseDate)
+    }
+    
+    // MARK: GetContextData() tests
+    
+    /// When no context data exists we should return nil
+    func testEmptyContextData() {
+        XCTAssertNil(lifecycleState.getContextData())
+    }
+    
+    /// Should properly return `lifecycleContextData`
+    func testInMemoryContextDataExists() {
+        // setup
+        var contextData = LifecycleContextData()
+        contextData.additionalContextData = ["testKey": "testVal"]
+        lifecycleState.lifecycleContextData = contextData
+        
+        // test
+        let actualContextData = lifecycleState.getContextData()
+        
+        // verify
+        XCTAssertEqual(actualContextData?.additionalContextData, contextData.additionalContextData)
+    }
+    
+    /// Should properly return `lifecycleContextData` even when `previousSessionLifecycleContextData` is non-nil
+    func testInMemoryContextDataExistsAndPreviousSessionExists() {
+        // setup
+        var contextData = LifecycleContextData()
+        contextData.additionalContextData = ["testKey": "testVal"]
+        lifecycleState.lifecycleContextData = contextData
+        
+        var contextData1 = LifecycleContextData()
+        contextData1.additionalContextData = ["testKey1": "testVal1"]
+        lifecycleState.previousSessionLifecycleContextData = contextData1
+        
+        // test
+        let actualContextData = lifecycleState.getContextData()
+        
+        // verify
+        XCTAssertEqual(actualContextData?.additionalContextData, contextData.additionalContextData)
+    }
+    
+    /// Should properly return `previousSessionLifecycleContextData` when `lifecycleContextData` is nil
+    func testInMemoryPreviousSessionContextDataExists() {
+        // setup
+        var contextData = LifecycleContextData()
+        contextData.additionalContextData = ["testKey": "testVal"]
+        lifecycleState.previousSessionLifecycleContextData = contextData
+        
+        // test
+        let actualContextData = lifecycleState.getContextData()
+        
+        // verify
+        XCTAssertEqual(actualContextData?.additionalContextData, contextData.additionalContextData)
+    }
+    
+    /// When `lifecycleContextData` and `previousSessionLifecycleContextData` are nil we should attempt to load from data store
+    func testPersistedContextDataExists() {
+        // setup
+        var contextData = LifecycleContextData()
+        contextData.additionalContextData = ["testKey": "testVal"]
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
+        
+        // test
+        let actualContextData = lifecycleState.getContextData()
+        
+        // verify
+        XCTAssertEqual(actualContextData?.additionalContextData, contextData.additionalContextData)
+    }
+    
+    // MARK: checkForApplicationUpgrade(...) tests
+    
+    /// When context data is empty, it should remain empty after invoking `checkForApplicationUpgrade`
+    func testCheckApplicationUpgradeWhenContextDataNil() {
+        // test
+        lifecycleState.checkForApplicationUpgrade(appId: "")
+        
+        // verify
+        XCTAssertNil(lifecycleState.getContextData())
+    }
+    
+    /// When appId is present in memory we, it should be present in the context data
+    func testCheckApplicationUpgradeAppUpgradeExistingLifecycleDataInMemeory() {
+        // setup
+        let appId = "test-app-id"
+        var contextData = LifecycleContextData()
+        contextData.lifecycleMetrics = LifecycleMetrics()
+        contextData.lifecycleMetrics?.appId = appId
+        lifecycleState.lifecycleContextData = contextData
+        
+        // test
+        lifecycleState.checkForApplicationUpgrade(appId: appId)
+        
+        // verify
+        XCTAssertEqual(appId, lifecycleState.getContextData()?.lifecycleMetrics?.appId)
+    }
+    
+    /// When appId is present in the persisted data we, it should be present in the context data
+    func testCheckApplicationUpgradeAppUpgradeExistingLifecycleDataPersisted() {
+        // setup
+        let appId = "test-app-id"
+        var contextData = LifecycleContextData()
+        contextData.lifecycleMetrics = LifecycleMetrics()
+        contextData.lifecycleMetrics?.appId = appId
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
+        
+        // test
+        lifecycleState.checkForApplicationUpgrade(appId: appId)
+        
+        // verify
+        XCTAssertEqual(appId, lifecycleState.getContextData()?.lifecycleMetrics?.appId)
+    }
+    
+    func testCheckApplicationUpgradeHappy() {
+        // setup
+        let appId = "new-app-id"
+        let appVersion = "appVersion"
+        var contextData = LifecycleContextData()
+        contextData.lifecycleMetrics = LifecycleMetrics()
+        contextData.lifecycleMetrics?.appId = appId
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
+        dataStore.setObject(key: LifecycleConstants.Keys.INSTALL_DATE, value: currentDate)
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: appVersion)
+        
+        // test
+        lifecycleState.checkForApplicationUpgrade(appId: appId)
+        
+        // verify
+        let actualContextData = lifecycleState.getContextData()
+        XCTAssertEqual(appId, actualContextData?.lifecycleMetrics?.appId)
+    }
 }

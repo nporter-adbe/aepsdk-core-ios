@@ -24,21 +24,19 @@ struct LifecycleContextData: Codable {
     /// - Parameters:
     ///   - with: The other `LifecycleContextData` to be merged with
     ///   - conflictResolver: A closure that takes the current and new values for any duplicate keys. The closure returns the desired value for the final `LifecycleContextData`.
-    func merging(with: LifecycleContextData?, uniquingKeysWith conflictResolver: (String, String) throws -> String) -> LifecycleContextData {
+    func merging(with: LifecycleContextData?, uniquingKeysWith conflictResolver: (Any, Any) throws -> Any) -> LifecycleContextData {
         guard let selfDict = toDictionary(), let otherDict = with?.toDictionary() else { return self }
         
         let mergedDict = try? selfDict.merging(otherDict, uniquingKeysWith: conflictResolver)
-        guard let mergedDictData = try? JSONEncoder().encode(mergedDict) else { return self }
+        guard let mergedDictData = try? JSONSerialization.data(withJSONObject: mergedDict as Any, options: []) else { return self }
         let mergedContextData = try? JSONDecoder().decode(LifecycleContextData.self, from: mergedDictData)
-        
         return mergedContextData ?? self
     }
     
     /// Converts this `LifecycleContextData` into a `[String: String]?` dictionary
     /// - Returns: A dictionary representation of the `LifecycleContextData`
-    private func toDictionary() -> [String: String]? {
-        guard let data = try? JSONEncoder().encode(self) else { return [:] }
-        let anyResult = try? JSONSerialization.jsonObject(with: data, options: [])
-        return anyResult as? [String: String]
+    private func toDictionary() -> [String: Any]? {
+        guard let data = try? JSONEncoder().encode(self) else { return nil }
+        return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }
 }
