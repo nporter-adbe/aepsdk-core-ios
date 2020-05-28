@@ -18,9 +18,9 @@ struct LifecycleState {
     private var lifecycleSession: LifecycleSession
     private var metricsBuilder: LifecycleMetricsBuilder?
     
-    init(dataStore: NamedKeyValueStore, lifecycleSession: LifecycleSession) {
+    init(dataStore: NamedKeyValueStore) {
         self.dataStore = dataStore
-        self.lifecycleSession = lifecycleSession
+        self.lifecycleSession = LifecycleSession(dataStore: dataStore)
     }
     
     mutating func start(startDate: Date, data: [String: Any], configurationSharedState: [String: Any], identitySharedState: [String: Any]?) {

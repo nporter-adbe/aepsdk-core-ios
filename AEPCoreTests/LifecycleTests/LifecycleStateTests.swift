@@ -16,7 +16,6 @@ class LifecycleStateTests: XCTestCase {
     
     var lifecycleState: LifecycleState!
     var dataStore = NamedKeyValueStore(name: "LifecycleStateTests")
-    var lifecycleSession: LifecycleSession!
     
     var currentDate: Date!
     var currentDateMinusOneSecond: Date!
@@ -27,8 +26,8 @@ class LifecycleStateTests: XCTestCase {
     override func setUp() {
         setupDates()
         dataStore.removeAll()
-        lifecycleSession = LifecycleSession(dataStore: dataStore)
-        lifecycleState = LifecycleState(dataStore: dataStore, lifecycleSession: lifecycleSession)
+        lifecycleState = LifecycleState(dataStore: dataStore)
+        AEPServiceProvider.shared.systemInfoService = MockSystemInfoService()
     }
     
     private func setupDates() {
@@ -39,21 +38,26 @@ class LifecycleStateTests: XCTestCase {
         currentDateMinusOneHour = Calendar.current.date(byAdding: .hour, value: -1, to: currentDate)
         currentDateMinusOneDay = Calendar.current.date(byAdding: .day, value: -1, to: currentDate)
     }
-
+    
+    /// Happy path testing start
     func testStartSimple() {
         // setup
         var persistedContext = LifecyclePersistedContext()
         persistedContext.pauseDate = currentDateMinusOneSecond
         persistedContext.startDate = currentDateMinusTenMin
-        persistedContext.osVersion = "13.0"
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
+        let mockAppVersion = "1.1.1"
+        dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: mockAppVersion)
         
         // test
         lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
         
         // verify
         let actualContext: LifecyclePersistedContext = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)!
-        let x = 1
+        XCTAssertEqual(currentDateMinusTenMin.timeIntervalSince1970 + 1, actualContext.startDate?.timeIntervalSince1970)
+        XCTAssertFalse(actualContext.successfulClose!)
+        XCTAssertNil(actualContext.pauseDate)
+        XCTAssertEqual(mockAppVersion, dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION))
     }
 
 
