@@ -16,6 +16,7 @@ class LifecycleStateTests: XCTestCase {
     
     var lifecycleState: LifecycleState!
     var dataStore = NamedKeyValueStore(name: "LifecycleStateTests")
+    var mockSystemInfoService: MockSystemInfoService!
     
     var currentDate: Date!
     var currentDateMinusOneSecond: Date!
@@ -40,7 +41,7 @@ class LifecycleStateTests: XCTestCase {
     }
     
     private func setupMockSystemInfoService() {
-        let mockSystemInfoService = MockSystemInfoService()
+        mockSystemInfoService = MockSystemInfoService()
         mockSystemInfoService.runMode = "Application"
         mockSystemInfoService.mobileCarrierName = "Test Carrier"
         mockSystemInfoService.applicationName = "Test app name"
@@ -51,6 +52,7 @@ class LifecycleStateTests: XCTestCase {
         mockSystemInfoService.activeLocaleName = "en-US"
         mockSystemInfoService.displayInformation = NativeDisplayInformation()
        
+        
         AEPServiceProvider.shared.systemInfoService = mockSystemInfoService
     }
     
@@ -95,14 +97,13 @@ class LifecycleStateTests: XCTestCase {
         lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
         
         // verify
-        let systemInfoService = AEPServiceProvider.shared.systemInfoService
         let actualContextData = lifecycleState.getContextData()
         
         XCTAssertTrue((actualContextData?.lifecycleMetrics!.crashEvent)!)
         XCTAssertEqual(actualContextData?.lifecycleMetrics?.previousOsVersion, osVersion)
         XCTAssertEqual(actualContextData?.lifecycleMetrics?.previousAppId, appId)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.appId)
-        XCTAssertEqual(systemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
+        XCTAssertEqual(mockSystemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.crashEvent ?? false)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.dailyEngagedEvent ?? false)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.dayOfTheWeek)
@@ -112,12 +113,12 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertNotNil(actualContextData?.sessionContextData?[LifecycleConstants.Keys.IGNORED_SESSION_LENGTH])
         XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.launches)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.launchEvent ?? false)
-        XCTAssertEqual(systemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
+        XCTAssertEqual(mockSystemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.monthlyEngagedEvent ?? false)
         XCTAssertEqual(osVersion, actualContextData?.lifecycleMetrics?.previousOsVersion)
         XCTAssertEqual(appId, actualContextData?.lifecycleMetrics?.previousAppId)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.deviceResolution)
-        XCTAssertEqual(systemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
+        XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.upgradeEvent ?? false)
         XCTAssertFalse(actualContextData?.lifecycleMetrics?.installEvent ?? true)
         
@@ -161,24 +162,23 @@ class LifecycleStateTests: XCTestCase {
                              identitySharedState: [:])
         
         // verify
-        let systemInfoService = AEPServiceProvider.shared.systemInfoService
         let actualContextData = lifecycleState.getContextData()
         
         XCTAssertEqual("Test app name 12345 (1.1.1)", actualContextData?.lifecycleMetrics?.appId)
-        XCTAssertEqual(systemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
+        XCTAssertEqual(mockSystemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.dailyEngagedEvent ?? false)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.dayOfTheWeek)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.hourOfTheDay)
-        XCTAssertEqual(systemInfoService.getDeviceName(), actualContextData?.lifecycleMetrics?.deviceName)
+        XCTAssertEqual(mockSystemInfoService.getDeviceName(), actualContextData?.lifecycleMetrics?.deviceName)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.installDate)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.installEvent ?? false)
         XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.launches)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.launchEvent ?? false)
-        XCTAssertEqual(systemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
+        XCTAssertEqual(mockSystemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.monthlyEngagedEvent ?? false)
-        XCTAssertEqual(systemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics?.operatingSystem)
+        XCTAssertEqual(mockSystemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics?.operatingSystem)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.deviceResolution)
-        XCTAssertEqual(systemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
+        XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
         XCTAssertFalse(actualContextData?.lifecycleMetrics?.upgradeEvent ?? true)
         XCTAssertFalse(actualContextData?.lifecycleMetrics?.crashEvent ?? true)
     }
@@ -236,22 +236,21 @@ class LifecycleStateTests: XCTestCase {
                              identitySharedState: [:])
         
         // verify
-        let systemInfoService = AEPServiceProvider.shared.systemInfoService
         let actualContextData = lifecycleState.getContextData()
         let actualContext: LifecyclePersistedContext! = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
         let lastUsedDate: Date = dataStore.getObject(key: LifecycleConstants.Keys.LAST_LAUNCH_DATE)!
         
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.appId)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.deviceResolution)
-        XCTAssertEqual(systemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
-        XCTAssertEqual(systemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics?.operatingSystem)
-        XCTAssertEqual(systemInfoService.getDeviceName(), actualContextData?.lifecycleMetrics?.deviceName)
+        XCTAssertEqual(mockSystemInfoService.getMobileCarrierName(), actualContextData?.lifecycleMetrics?.carrierName)
+        XCTAssertEqual(mockSystemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics?.operatingSystem)
+        XCTAssertEqual(mockSystemInfoService.getDeviceName(), actualContextData?.lifecycleMetrics?.deviceName)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.dayOfTheWeek)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics?.hourOfTheDay)
         XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.launches)
         XCTAssertTrue(actualContextData?.lifecycleMetrics?.launchEvent ?? false)
-        XCTAssertEqual(systemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
-        XCTAssertEqual(systemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
+        XCTAssertEqual(mockSystemInfoService.getActiveLocaleName(), actualContextData?.lifecycleMetrics?.locale)
+        XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics?.runMode)
         XCTAssertEqual("3000", actualContextData?.sessionContextData?[LifecycleConstants.Keys.PREVIOUS_SESSION_LENGTH])
         XCTAssertEqual(1, actualContextData?.lifecycleMetrics?.daysSinceFirstLaunch)
         XCTAssertEqual(0, actualContextData?.lifecycleMetrics?.daysSinceLastLaunch)

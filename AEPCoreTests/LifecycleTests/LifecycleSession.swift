@@ -66,7 +66,6 @@ struct LifecycleSession {
         sessionContainer.osVersion = coreMetrics.operatingSystem
         sessionContainer.appId = coreMetrics.appId
         
-        print(sessionContainer)
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: sessionContainer)
         return LifecycleSessionInfo(startDate: previousSessionStartDate, pauseDate: previousSessionPauseDate, isCrash: previousSessionCrashed)
     }
