@@ -23,7 +23,6 @@ struct LifecycleState {
     #endif
     
     private var lifecycleSession: LifecycleSession
-    private var metricsBuilder: LifecycleMetricsBuilder?
     
     init(dataStore: NamedKeyValueStore) {
         self.dataStore = dataStore
@@ -34,27 +33,29 @@ struct LifecycleState {
         let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
         
         // Build default LifecycleMetrics
-        metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
-        metricsBuilder = metricsBuilder?.addDeviceData()
-        let defaultMetrics = metricsBuilder?.build()
-        checkForApplicationUpgrade(appId: defaultMetrics?.appId)
+        var metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
+        metricsBuilder = metricsBuilder.addDeviceData()
+        let defaultMetrics = metricsBuilder.build()
+        checkForApplicationUpgrade(appId: defaultMetrics.appId)
         
         let sessionTimeout = TimeInterval(configurationSharedState[ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT] as? Int ?? Int(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT))
         
-        guard let previousSessionInfo = lifecycleSession.start(startDate: startDate, sessionTimeoutInSeconds: sessionTimeout, coreMetrics: defaultMetrics ?? LifecycleMetrics()) else { return }
+        guard let previousSessionInfo = lifecycleSession.start(startDate: startDate,
+                                                               sessionTimeoutInSeconds: sessionTimeout,
+                                                               coreMetrics: defaultMetrics) else { return }
         
         var lifecycleData = LifecycleContextData()
         
         if isInstall() {
-            metricsBuilder = metricsBuilder?.addInstallData()
-            metricsBuilder = metricsBuilder?.addLaunchEventData()
+            metricsBuilder = metricsBuilder.addInstallData()
+            metricsBuilder = metricsBuilder.addLaunchEventData()
         } else {
             // upgrade and launch hits
-            metricsBuilder = metricsBuilder?.addLaunchEventData()
-            metricsBuilder = metricsBuilder?.addLaunchData()
+            metricsBuilder = metricsBuilder.addLaunchEventData()
+            metricsBuilder = metricsBuilder.addLaunchData()
             let upgrade = isUpgrade()
-            metricsBuilder = metricsBuilder?.addUpgradeData(upgrade: upgrade)
-            metricsBuilder = metricsBuilder?.addCrashData(previousSessionCrash: previousSessionInfo.isCrash,
+            metricsBuilder = metricsBuilder.addUpgradeData(upgrade: upgrade)
+            metricsBuilder = metricsBuilder.addCrashData(previousSessionCrash: previousSessionInfo.isCrash,
                                                           osVersion: sessionContainer?.osVersion ?? "unavailable",
                                                           appId: sessionContainer?.appId ?? "unavailable")
             
@@ -62,7 +63,7 @@ struct LifecycleState {
             lifecycleData.sessionContextData = sessionContextData
         }
         
-        lifecycleData.lifecycleMetrics = metricsBuilder?.build()
+        lifecycleData.lifecycleMetrics = metricsBuilder.build()
         
         if let additionalContextData = data[LifecycleConstants.Keys.ADDITIONAL_CONTEXT_DATA] as? [String: String] {
             lifecycleData.additionalContextData = additionalContextData
@@ -98,11 +99,11 @@ struct LifecycleState {
         guard var lifecycleData = getContextData() else { return }
         
         // update the version in our map
-        lifecycleData.lifecycleMetrics?.appId = appId
+        lifecycleData.lifecycleMetrics.appId = appId
         
         if lifecycleContextData == nil {
             // update the previous session's map
-            previousSessionLifecycleContextData?.lifecycleMetrics?.appId = appId
+            previousSessionLifecycleContextData?.lifecycleMetrics.appId = appId
             dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: lifecycleData)
         } else {
             // if we have the map in memory update it

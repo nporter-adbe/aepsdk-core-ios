@@ -13,9 +13,9 @@ import Foundation
 
 /// Represents context data collected from the Lifecycle extension
 struct LifecycleContextData: Codable {    
-    var lifecycleMetrics: LifecycleMetrics? = LifecycleMetrics()
-    var sessionContextData: [String: String]? = [String: String]()
-    var additionalContextData: [String: String]? = [String: String]()
+    var lifecycleMetrics: LifecycleMetrics = LifecycleMetrics()
+    var sessionContextData: [String: String] = [String: String]()
+    var additionalContextData: [String: String] = [String: String]()
     var advertisingIdentifier: String?
     
     init() {}
