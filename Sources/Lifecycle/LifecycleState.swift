@@ -34,21 +34,19 @@ struct LifecycleState {
     
     /// Starts a new lifecycle session at the given date with the provided data
     /// - Parameters:
-    ///   - startDate: date at which the start event occurred
-    ///   - data: event data associated with the start event
-    ///   - configurationSharedState: The shared state for the Configuration extension at the time the start event took place
-    ///   - identitySharedState: The shared state for the Identity extension at the time the start event took place
-    mutating func start(startDate: Date, data: [String: Any], configurationSharedState: [String: Any], identitySharedState: [String: Any]?) {
+    ///   - date: date at which the start event occurred
+    ///   - additionalContextData: additional context data for this start event
+    ///   - adId: The advertising identifier provided by the identity extension
+    ///   - sessionTimeout: The session timeout for this start event, defaults to 300 seconds
+    mutating func start(date: Date, additionalContextData: [String: String]?, adId: String?, sessionTimeout: TimeInterval = TimeInterval(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT)) {
         let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
         // Build default LifecycleMetrics
-        var metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
+        var metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: date)
         metricsBuilder = metricsBuilder.addDeviceData()
         let defaultMetrics = metricsBuilder.build()
         checkForApplicationUpgrade(appId: defaultMetrics.appId)
         
-        let sessionTimeout = TimeInterval(configurationSharedState[ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT] as? Int ?? Int(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT))
-        
-        guard let previousSessionInfo = lifecycleSession.start(startDate: startDate,
+        guard let previousSessionInfo = lifecycleSession.start(startDate: date,
                                                                sessionTimeoutInSeconds: sessionTimeout,
                                                                coreMetrics: defaultMetrics) else { return }
         
@@ -67,23 +65,18 @@ struct LifecycleState {
                                                           osVersion: sessionContainer?.osVersion ?? "unavailable",
                                                           appId: sessionContainer?.appId ?? "unavailable")
             
-            let sessionContextData = lifecycleSession.getSessionData(startDate: startDate, sessionTimeoutInSeconds: sessionTimeout, previousSessionInfo: previousSessionInfo)
+            let sessionContextData = lifecycleSession.getSessionData(startDate: date, sessionTimeoutInSeconds: sessionTimeout, previousSessionInfo: previousSessionInfo)
             lifecycleData.sessionContextData = sessionContextData
         }
         
         lifecycleData.lifecycleMetrics = metricsBuilder.build()
         
-        if let additionalContextData = data[LifecycleConstants.Keys.ADDITIONAL_CONTEXT_DATA] as? [String: String] {
-            lifecycleData.additionalContextData = additionalContextData
-        }
-        
-        if let advertisingIdentifier = identitySharedState?[LifecycleConstants.Keys.ADVERTISING_IDENTIFIER] as? String {
-            lifecycleData.advertisingIdentifier = advertisingIdentifier
-        }
-        
+        lifecycleData.additionalContextData = additionalContextData ?? [:]
+        lifecycleData.advertisingIdentifier = adId
+
         // Update lifecycle context data and persist lifecycle info into local storage
         lifecycleContextData = lifecycleContextData?.merging(with: lifecycleData, uniquingKeysWith: { (_, new) in new } ) ?? lifecycleData
-        persistLifecycleContextData(startDate: startDate)
+        persistLifecycleContextData(startDate: date)
     }
     
     /// Pauses the current lifecycle session

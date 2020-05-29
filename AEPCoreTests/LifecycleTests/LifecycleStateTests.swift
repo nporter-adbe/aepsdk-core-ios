@@ -67,7 +67,7 @@ class LifecycleStateTests: XCTestCase {
         dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: mockAppVersion)
         
         // test
-        lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
+        lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
         
         // verify
         let actualContext: LifecyclePersistedContext = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)!
@@ -94,7 +94,7 @@ class LifecycleStateTests: XCTestCase {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
         
         // test
-        lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
+        lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -139,7 +139,7 @@ class LifecycleStateTests: XCTestCase {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
         
         // test
-        lifecycleState.start(startDate: currentDate, data: [:], configurationSharedState: [:], identitySharedState: [:])
+        lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -155,11 +155,8 @@ class LifecycleStateTests: XCTestCase {
         
         lifecycleState.lifecycleContextData = contextData
         
-        // test
-        lifecycleState.start(startDate: currentDate,
-                             data: [:],
-                             configurationSharedState: [ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT: 200],
-                             identitySharedState: [:])
+        // test        
+        lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -203,10 +200,7 @@ class LifecycleStateTests: XCTestCase {
         
         
         // test
-        lifecycleState.start(startDate: currentDate,
-                             data: [:],
-                             configurationSharedState: [ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT: 200],
-                             identitySharedState: [:])
+        lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -228,12 +222,8 @@ class LifecycleStateTests: XCTestCase {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
         
         let additionalData = ["testKey1": "testVal1"]
-        
-        // test
-        lifecycleState.start(startDate: currentDate,
-                             data: additionalData,
-                             configurationSharedState: [ConfigurationConstants.Keys.LIFECYCLE_CONFIG_SESSION_TIMEOUT: 200],
-                             identitySharedState: [:])
+        // test        
+        lifecycleState.start(date: currentDate, additionalContextData: additionalData, adId: nil, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -259,6 +249,7 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertEqual(currentDate, actualContext.startDate)
         XCTAssertEqual(appVersion, dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION))
         XCTAssertFalse(actualContext.successfulClose ?? true)
+        XCTAssertEqual(additionalData, actualContextData?.additionalContextData)
     }
     
     // MARK: Pause(...) tests
