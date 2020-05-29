@@ -222,8 +222,10 @@ class LifecycleStateTests: XCTestCase {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
         
         let additionalData = ["testKey1": "testVal1"]
+        let adId = "testAdId"
+        
         // test        
-        lifecycleState.start(date: currentDate, additionalContextData: additionalData, adId: nil, sessionTimeout: 200)
+        lifecycleState.start(date: currentDate, additionalContextData: additionalData, adId: adId, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -250,6 +252,7 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertEqual(appVersion, dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION))
         XCTAssertFalse(actualContext.successfulClose ?? true)
         XCTAssertEqual(additionalData, actualContextData?.additionalContextData)
+        XCTAssertEqual(adId, actualContextData?.advertisingIdentifier)
     }
     
     // MARK: Pause(...) tests
