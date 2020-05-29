@@ -11,6 +11,7 @@ governing permissions and limitations under the License.
 
 import Foundation
 
+/// Manages the business logic of the Lifecycle extension
 struct LifecycleState {
     let dataStore: NamedKeyValueStore
     
@@ -24,14 +25,20 @@ struct LifecycleState {
     
     private var lifecycleSession: LifecycleSession
     
+    /// Creates a new `LifecycleState` with the given `NamedKeyValueStore`
+    /// - Parameter dataStore: The Lifecycle extension's data store
     init(dataStore: NamedKeyValueStore) {
         self.dataStore = dataStore
         self.lifecycleSession = LifecycleSession(dataStore: dataStore)
     }
     
+    /// Starts a new lifecycle session at the given date with the provided data
+    /// - Parameters:
+    ///   - startDate: date at which the start event occurred
+    ///   - data: event data associated with the start event
+    ///   - configurationSharedState: The shared state for the Configuration extension at the time the start event took place
+    ///   - identitySharedState: The shared state for the Identity extension at the time the start event took place
     mutating func start(startDate: Date, data: [String: Any], configurationSharedState: [String: Any], identitySharedState: [String: Any]?) {
-        let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
-        
         // Build default LifecycleMetrics
         var metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
         metricsBuilder = metricsBuilder.addDeviceData()
@@ -51,6 +58,7 @@ struct LifecycleState {
             metricsBuilder = metricsBuilder.addLaunchEventData()
         } else {
             // upgrade and launch hits
+            let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
             metricsBuilder = metricsBuilder.addLaunchEventData()
             metricsBuilder = metricsBuilder.addLaunchData()
             let upgrade = isUpgrade()
@@ -78,10 +86,13 @@ struct LifecycleState {
         persistLifecycleContextData(startDate: startDate)
     }
     
+    /// Pauses the current lifecycle session
+    /// - Parameter pauseDate: date at which the pause event occurred
     mutating func pause(pauseDate: Date) {
         lifecycleSession.pause(pauseDate: pauseDate)
     }
     
+    /// Gets the current context data stored in memory, if none in memory will check data store, if not present will return nil
     mutating func getContextData() -> LifecycleContextData? {
         if let contextData = lifecycleContextData ?? previousSessionLifecycleContextData {
             return contextData
@@ -124,6 +135,8 @@ struct LifecycleState {
         return dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION) != appVersion
     }
     
+    /// Saves `lifecycleContextData` to the data store along with the start date and application version number
+    /// - Parameter startDate: Date the lifecycle session started
     private func persistLifecycleContextData(startDate: Date) {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: lifecycleContextData)
         dataStore.setObject(key: LifecycleConstants.Keys.LAST_LAUNCH_DATE, value: startDate)
@@ -131,6 +144,7 @@ struct LifecycleState {
         dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: appVersion)
     }
     
+    /// Gets the `LifecycleContextData` stored in the data store, nil if not present
     private func getPersistedContextData() -> LifecycleContextData? {
         let contextData: LifecycleContextData? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA)
         return contextData
