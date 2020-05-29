@@ -39,6 +39,7 @@ struct LifecycleState {
     ///   - configurationSharedState: The shared state for the Configuration extension at the time the start event took place
     ///   - identitySharedState: The shared state for the Identity extension at the time the start event took place
     mutating func start(startDate: Date, data: [String: Any], configurationSharedState: [String: Any], identitySharedState: [String: Any]?) {
+        let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
         // Build default LifecycleMetrics
         var metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: startDate)
         metricsBuilder = metricsBuilder.addDeviceData()
@@ -58,7 +59,6 @@ struct LifecycleState {
             metricsBuilder = metricsBuilder.addLaunchEventData()
         } else {
             // upgrade and launch hits
-            let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
             metricsBuilder = metricsBuilder.addLaunchEventData()
             metricsBuilder = metricsBuilder.addLaunchData()
             let upgrade = isUpgrade()
