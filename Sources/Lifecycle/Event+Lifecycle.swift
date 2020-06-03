@@ -12,20 +12,25 @@ governing permissions and limitations under the License.
 import Foundation
 
 extension Event {
+    
+    /// Returns true if this event contains the start value for the Lifecycle action key
     var isLifecycleStartEvent: Bool {
         return actionValue == LifecycleConstants.START
     }
     
+    /// Returns true if this event contains the pause value for the Lifecycle action key
     var isLifecyclePauseEvent: Bool {
         return actionValue == LifecycleConstants.PAUSE
     }
     
-    private var actionValue: String? {
-        return data?[LifecycleConstants.Keys.ACTION_KEY] as? String
-    }
-    
+    /// Returns the additional data associated with a Lifecycle event
     var additionalData: [String: String]? {
         return data?[LifecycleConstants.Keys.ADDITIONAL_CONTEXT_DATA] as? [String: String]
+    }
+    
+    /// Private helper to read the action value out of `data`
+    private var actionValue: String? {
+        return data?[LifecycleConstants.Keys.ACTION_KEY] as? String
     }
     
 }

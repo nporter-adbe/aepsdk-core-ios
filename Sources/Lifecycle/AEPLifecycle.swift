@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 
 import Foundation
 
-class LifecycleExtension: Extension {
+class AEPLifecycle: Extension {
     typealias EventHandlerMapping = (event: Event, handler: (Event) -> (Bool)) // TODO: Move to event hub to make public?
     
     let name = LifecycleConstants.EXTENSION_NAME
@@ -21,11 +21,14 @@ class LifecycleExtension: Extension {
     private var lifecycleState: LifecycleState
     
     // MARK: Extension
+    
+    /// Invoked when the `EventHub` creates it's instance of the Lifecycle extension
     required init() {
         lifecycleState = LifecycleState(dataStore: NamedKeyValueStore(name: name))
         eventQueue.setHandler({ return $0.handler($0.event) })
     }
     
+    /// Invoked when the `EventHub` has successfully registered the Lifecycle extension.
     func onRegistered() {
         registerListener(type: .genericLifecycle, source: .requestContent, listener: receiveLifecycleRequest(event:))
         registerListener(type: .hub, source: .sharedState, listener: receiveSharedState(event:))
@@ -36,10 +39,15 @@ class LifecycleExtension: Extension {
     func onUnregistered() {}
     
     // MARK: Event Listeners
+    
+    /// Invoked when an event of type generic lifecycle and source request content is dispatched by the `EventHub`
+    /// - Parameter event: the generic lifecycle event
     private func receiveLifecycleRequest(event: Event) {
         eventQueue.add((event, handleLifecycleRequest(event:)))
     }
     
+    /// Invoked when the `EventHub` dispatches a shared state event. If the shared state owner is Configuration we trigger the internal `eventQueue`.
+    /// - Parameter event: The shared state event
     private func receiveSharedState(event: Event) {
         guard let stateOwner = event.data?[EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER] as? String else { return }
 
@@ -49,12 +57,16 @@ class LifecycleExtension: Extension {
     }
     
     // MARK: Event Handlers
+    
+    /// Handles the Lifecycle request event by either invoking the start or pause business logic
+    /// - Parameter event: a Lifecycle request event
+    /// - Returns: True if the Lifecycle event was processed, false if the configuration shared state is not yet ready
     private func handleLifecycleRequest(event: Event) -> Bool {
         guard let configurationSharedState = getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event) else {
             return false
         }
         
-        if configurationSharedState.status == .pending { return true }
+        if configurationSharedState.status == .pending { return false }
         
         if event.isLifecycleStartEvent {
             lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
@@ -66,6 +78,10 @@ class LifecycleExtension: Extension {
     }
     
     // MARK: Helpers
+    
+    /// Attempts to read the advertising identifier from Identity shared state
+    /// - Parameter event: event to version the shared state
+    /// - Returns: the advertising identifier, nil if not found or if Identity shared state is not available
     private func getAdvertisingIdentifier(event: Event) -> String? {
         // TODO: Replace with Identity name via constant when Identity extension is merged
         guard let identitySharedState = getSharedState(extensionName: "com.adobe.module.identity", event: event) else {
