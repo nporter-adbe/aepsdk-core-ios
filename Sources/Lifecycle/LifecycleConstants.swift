@@ -13,6 +13,9 @@ import Foundation
 
 /// Constants for `AEPLifecycle`
 struct LifecycleConstants {
+    static let EXTENSION_NAME = "com.adobe.module.lifecycle"
+    static let EXTENSION_VERSION = "0.0.1"
+    
     static let START = "start"
     static let PAUSE = "pause"
     static let MAX_SESSION_LENGTH_SECONDS = 86400.0 * 7.0 // 7 days

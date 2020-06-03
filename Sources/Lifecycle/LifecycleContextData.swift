@@ -34,7 +34,7 @@ struct LifecycleContextData: Codable {
     
     /// Converts this `LifecycleContextData` into a `[String: String]?` dictionary
     /// - Returns: A dictionary representation of the `LifecycleContextData`
-    private func toDictionary() -> [String: Any]? {
+    func toDictionary() -> [String: Any]? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
     }

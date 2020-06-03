@@ -19,6 +19,7 @@
 		213C8BD72428822A009F780A /* EventListenerContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213C8BD62428822A009F780A /* EventListenerContainer.swift */; };
 		213C8C0824297773009F780A /* EventHubError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213C8C0724297773009F780A /* EventHubError.swift */; };
 		213E87B92433E9BD00033447 /* SharedStateTestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213E87B82433E9BD00033447 /* SharedStateTestHelper.swift */; };
+		213F984F248829FE0095C366 /* Event+Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F984E248829FE0095C366 /* Event+Lifecycle.swift */; };
 		214149C72429A39B00FCE512 /* SlowMockExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 214149C52429A39B00FCE512 /* SlowMockExtension.swift */; };
 		21599656243E4EEB00E202B1 /* AnyCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21599655243E4EEB00E202B1 /* AnyCodable.swift */; };
 		21599659243E4F0B00E202B1 /* AnyCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21599658243E4F0B00E202B1 /* AnyCodableTests.swift */; };
@@ -112,6 +113,7 @@
 		213C8BD62428822A009F780A /* EventListenerContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListenerContainer.swift; sourceTree = "<group>"; };
 		213C8C0724297773009F780A /* EventHubError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventHubError.swift; sourceTree = "<group>"; };
 		213E87B82433E9BD00033447 /* SharedStateTestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestHelper.swift; sourceTree = "<group>"; };
+		213F984E248829FE0095C366 /* Event+Lifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Event+Lifecycle.swift"; path = "Sources/Lifecycle/Event+Lifecycle.swift"; sourceTree = SOURCE_ROOT; };
 		214149C52429A39B00FCE512 /* SlowMockExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlowMockExtension.swift; sourceTree = "<group>"; };
 		21599655243E4EEB00E202B1 /* AnyCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyCodable.swift; sourceTree = "<group>"; };
 		21599658243E4F0B00E202B1 /* AnyCodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyCodableTests.swift; sourceTree = "<group>"; };
@@ -247,6 +249,7 @@
 				21629DAB2461CA88009D05BF /* LifecycleConstants.swift */,
 				21629DAD2461CABE009D05BF /* AEPLifecycle.swift */,
 				21629DAF2461CAD0009D05BF /* AEPCore+Lifecycle.swift */,
+				213F984E248829FE0095C366 /* Event+Lifecycle.swift */,
 				21F3619F246DE4B5009AB88B /* LifecycleMetrics.swift */,
 				78E2AC8B2476FFA900E49D64 /* LifecycleMetricsBuilder.swift */,
 				21F02C302476F45B00D25528 /* LifecycleSession.swift */,
@@ -550,6 +553,7 @@
 				D4000F1A2458DEDE0052C536 /* NetworkRequest.swift in Sources */,
 				21315BBA24579C4A00D1B254 /* AtomicCounter.swift in Sources */,
 				213C8BD72428822A009F780A /* EventListenerContainer.swift in Sources */,
+				213F984F248829FE0095C366 /* Event+Lifecycle.swift in Sources */,
 				785220D4245C921D00B46E90 /* NamedUserDefaultKeyValueService.swift in Sources */,
 				2179F1842464901A0004A7C0 /* AEPLifecycle.swift in Sources */,
 				21DB708D242AAD3D00568A4C /* ExtensionContainer.swift in Sources */,
