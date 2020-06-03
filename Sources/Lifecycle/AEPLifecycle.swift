@@ -72,7 +72,7 @@ class AEPLifecycle: Extension {
         
         if event.isLifecycleStartEvent {
             let (prevStartDate, prevPauseDate) = lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
-            updateSharedState(event: event)
+            updateSharedState(event: event, data: lifecycleState.getContextData()?.toDictionary() ?? [:])
             if let unwrappedPrevStartDate = prevStartDate, let unwrappedPrevPauseDate = prevPauseDate {
                 dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevStartDate, previousPauseDate: unwrappedPrevPauseDate)
             }
@@ -100,11 +100,21 @@ class AEPLifecycle: Extension {
         return identitySharedState.value?["advertisingidentifier"] as? String
     }
     
-    private func updateSharedState(event: Event) {
-        let sharedStateData = [LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: lifecycleState.getContextData()?.toDictionary()]
+    /// Updates the Lifecycle shared state versioned at `event` with `data`
+    /// - Parameters:
+    ///   - event: the event to version the shared state at
+    ///   - data: data for the shared state
+    private func updateSharedState(event: Event, data: [String: Any]) {
+        let sharedStateData = [LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: data]
         createSharedState(data: sharedStateData as [String : Any], event: event)
     }
     
+    /// Dispatches a Lifecycle response content event with appropriate event data
+    /// - Parameters:
+    ///   - date: date of the session start event
+    ///   - contextData: current Lifecycle context data
+    ///   - previousStartDate: start date of the previous session
+    ///   - previousPauseDate: end date of the previous session
     private func dispatchSessionStart(date: Date, contextData: LifecycleContextData?, previousStartDate: Date, previousPauseDate: Date) {
         let eventData: [String: Any] = [
             LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: contextData?.toDictionary() ?? [:],
