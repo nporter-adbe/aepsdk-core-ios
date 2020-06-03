@@ -32,7 +32,9 @@ class AEPLifecycle: Extension {
     func onRegistered() {
         registerListener(type: .genericLifecycle, source: .requestContent, listener: receiveLifecycleRequest(event:))
         registerListener(type: .hub, source: .sharedState, listener: receiveSharedState(event:))
-        createSharedState(data: lifecycleState.computeBootData().toDictionary() ?? [:], event: nil)
+        
+        let sharedStateData = [LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: lifecycleState.computeBootData().toDictionary()]
+        createSharedState(data: sharedStateData as [String : Any], event: nil)
         eventQueue.start()
     }
     
@@ -69,7 +71,11 @@ class AEPLifecycle: Extension {
         if configurationSharedState.status == .pending { return false }
         
         if event.isLifecycleStartEvent {
-            lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
+            let (prevStartDate, prevPauseDate) = lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
+            updateSharedState(event: event)
+            if let unwrappedPrevStartDate = prevStartDate, let unwrappedPrevPauseDate = prevPauseDate {
+                dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevStartDate, previousPauseDate: unwrappedPrevPauseDate)
+            }
         } else if event.isLifecyclePauseEvent {
             lifecycleState.pause(pauseDate: event.timestamp)
         }
@@ -92,5 +98,23 @@ class AEPLifecycle: Extension {
         
         // TODO: Replace with data key via constant when Identity extension is merged
         return identitySharedState.value?["advertisingidentifier"] as? String
+    }
+    
+    private func updateSharedState(event: Event) {
+        let sharedStateData = [LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: lifecycleState.getContextData()?.toDictionary()]
+        createSharedState(data: sharedStateData as [String : Any], event: event)
+    }
+    
+    private func dispatchSessionStart(date: Date, contextData: LifecycleContextData?, previousStartDate: Date, previousPauseDate: Date) {
+        let eventData: [String: Any] = [
+            LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: contextData?.toDictionary() ?? [:],
+            LifecycleConstants.Keys.SESSION_EVENT: LifecycleConstants.START,
+            LifecycleConstants.Keys.SESSION_START_TIMESTAMP: date.timeIntervalSince1970,
+            LifecycleConstants.Keys.MAX_SESSION_LENGTH: LifecycleConstants.MAX_SESSION_LENGTH_SECONDS,
+            LifecycleConstants.Keys.PREVIOUS_SESSION_START_TIMESTAMP: previousStartDate.timeIntervalSince1970,
+            LifecycleConstants.Keys.PREVIOUS_SESSION_PAUSE_TIMESTAMP: previousPauseDate.timeIntervalSince1970
+        ]
+        
+        dispatch(event: Event(name: "LifecycleStart", type: .lifecycle, source: .responseContent, data: eventData))
     }
 }

@@ -29,6 +29,12 @@ struct LifecycleConstants {
         static let APP_ID = "AppId"
         static let PREVIOUS_SESSION_LENGTH = "prevsessionlength"
         static let IGNORED_SESSION_LENGTH = "ignoredsessionlength"
+        static let LIFECYCLE_CONTEXT_DATA = "lifecyclecontextdata"
+        static let SESSION_EVENT = "sessionevent"
+        static let SESSION_START_TIMESTAMP = "starttimestampmillis"
+        static let MAX_SESSION_LENGTH  = "maxsessionlength"
+        static let PREVIOUS_SESSION_START_TIMESTAMP = "previoussessionstarttimestampmillis"
+        static let PREVIOUS_SESSION_PAUSE_TIMESTAMP = "previoussessionpausetimestampmillis"
     }
 
     struct DataStoreKeys {
