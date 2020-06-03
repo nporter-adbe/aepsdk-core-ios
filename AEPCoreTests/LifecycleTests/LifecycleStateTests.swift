@@ -122,7 +122,7 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertNotNil(actualContextData?.lifecycleMetrics.deviceResolution)
         XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics.runMode)
         XCTAssertTrue(actualContextData?.lifecycleMetrics.upgradeEvent ?? false)
-        XCTAssertFalse(actualContextData?.lifecycleMetrics.installEvent ?? true)
+        XCTAssertNil(actualContextData?.lifecycleMetrics.installEvent)
         XCTAssertEqual(persistedContext.startDate, prevStartDate)
         XCTAssertEqual(persistedContext.pauseDate, prevPauseDate)
         
@@ -405,5 +405,25 @@ class LifecycleStateTests: XCTestCase {
         // verify
         let actualContextData = lifecycleState.getContextData()
         XCTAssertEqual(appId, actualContextData?.lifecycleMetrics.appId)
+    }
+    
+    // MARK: computeBootData() tests
+    
+    /// By default compute boot data should return device data and launch event data
+    func testComputeBootDataSimple() {
+        // test
+        let actualContextData = lifecycleState.computeBootData()
+        
+        // verify
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.appId)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.deviceResolution)
+        XCTAssertEqual(mockSystemInfoService.getMobileCarrierName(), actualContextData.lifecycleMetrics.carrierName)
+        XCTAssertEqual(mockSystemInfoService.getOperatingSystemName(), actualContextData.lifecycleMetrics.operatingSystem)
+        XCTAssertEqual(mockSystemInfoService.getDeviceName(), actualContextData.lifecycleMetrics.deviceName)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.dayOfTheWeek)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.hourOfTheDay)
+        XCTAssertTrue(actualContextData.lifecycleMetrics.launchEvent!)
+        XCTAssertEqual(mockSystemInfoService.getActiveLocaleName(), actualContextData.lifecycleMetrics.locale)
+        XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData.lifecycleMetrics.runMode)
     }
 }

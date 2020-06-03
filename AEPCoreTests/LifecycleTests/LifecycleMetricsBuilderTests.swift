@@ -53,8 +53,8 @@ class LifecycleMetricsBuilderTests: XCTestCase {
         metricsBuilder?.addLaunchData()
         let metrics = metricsBuilder?.build()
 
-        XCTAssertTrue(metrics!.dailyEngagedEvent)
-        XCTAssertFalse(metrics!.monthlyEngagedEvent)
+        XCTAssertTrue(metrics!.dailyEngagedEvent!)
+        XCTAssertFalse(metrics!.monthlyEngagedEvent!)
         // Check that the "daysSinceLastLaunch" and "daysSinceFirstLaunch" values are correct
         XCTAssertEqual(metrics?.daysSinceLastLaunch, 1)
         XCTAssertEqual(metrics?.daysSinceFirstLaunch, 2)
@@ -70,8 +70,8 @@ class LifecycleMetricsBuilderTests: XCTestCase {
         metricsBuilder?.addLaunchData()
         let metrics = metricsBuilder?.build()
 
-        XCTAssertTrue(metrics!.dailyEngagedEvent)
-        XCTAssertTrue(metrics!.monthlyEngagedEvent)
+        XCTAssertTrue(metrics!.dailyEngagedEvent!)
+        XCTAssertTrue(metrics!.monthlyEngagedEvent!)
         // Check that the "daysSinceLastLaunch" and "daysSinceFirstLaunch" values are correct when last launch was a month prior, and first launch was one day before that
         XCTAssertEqual(metrics?.daysSinceLastLaunch, 30)
         XCTAssertEqual(metrics?.daysSinceFirstLaunch, 31)
@@ -91,7 +91,7 @@ class LifecycleMetricsBuilderTests: XCTestCase {
         XCTAssertEqual(metrics?.launches, numberOfLaunches)
         XCTAssertEqual(metrics?.dayOfTheWeek, currentDateComponents.weekday)
         XCTAssertEqual(metrics?.hourOfTheDay, currentDateComponents.hour)
-        XCTAssertTrue(metrics!.launchEvent)
+        XCTAssertTrue(metrics!.launchEvent!)
     }
     
     func testAddGenericDataWithoutLaunches() {
@@ -103,14 +103,14 @@ class LifecycleMetricsBuilderTests: XCTestCase {
         XCTAssertNil(metrics?.launches)
         XCTAssertEqual(metrics?.dayOfTheWeek, currentDateComponents.weekday)
         XCTAssertEqual(metrics?.hourOfTheDay, currentDateComponents.hour)
-        XCTAssertTrue(metrics!.launchEvent)
+        XCTAssertTrue(metrics!.launchEvent!)
     }
     
     func testAddUpgradeDataWithUpgrade() {
         metricsBuilder?.addUpgradeData(upgrade: true)
         let metrics = metricsBuilder?.build()
         
-        XCTAssertTrue(metrics!.upgradeEvent)
+        XCTAssertTrue(metrics!.upgradeEvent!)
         XCTAssertEqual(dataStore?.setObjectValues[0] as? Date, self.date)
         XCTAssertEqual(dataStore?.setIntValues[0], 0)
     }
