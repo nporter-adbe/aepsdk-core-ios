@@ -37,6 +37,8 @@ struct LifecycleState {
         self.lifecycleSession = LifecycleSession(dataStore: dataStore)
     }
     
+    /// Loads the initial Lifecycle data which includes device data and launch event
+    /// - Returns: `LifecycleContextData` with device data, launch event data and any persisted context data
     mutating func computeBootData() -> LifecycleContextData {
         let contextData = LifecycleContextData().merging(with: getContextData())
         let defaultMetrics = LifecycleMetricsBuilder(dataStore: dataStore, date: Date()).addDeviceData().addLaunchEventData().build()
