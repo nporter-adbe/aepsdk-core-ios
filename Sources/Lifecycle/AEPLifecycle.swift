@@ -71,8 +71,13 @@ class AEPLifecycle: Extension {
         guard configurationSharedState.status == .set else { return false }
         
         if event.isLifecycleStartEvent {
-            let prevSessionInfo = lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
+            let prevSessionInfo = lifecycleState.start(date: event.timestamp,
+                                                       additionalContextData: event.additionalData,
+                                                       adId: getAdvertisingIdentifier(event: event),
+                                                       sessionTimeout: getSessionTimeoutLength(configurationSharedState: configurationSharedState.value))
             updateSharedState(event: event, data: lifecycleState.getContextData()?.toEventData() ?? [:])
+            
+            
             if let unwrappedPrevSessionInfo = prevSessionInfo {
                 dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevSessionInfo.startDate, previousPauseDate: unwrappedPrevSessionInfo.pauseDate)
             }
@@ -126,5 +131,13 @@ class AEPLifecycle: Extension {
         ]
         
         dispatch(event: Event(name: "LifecycleStart", type: .lifecycle, source: .responseContent, data: eventData))
+    }
+    
+    private func getSessionTimeoutLength(configurationSharedState: [String: Any]?) -> TimeInterval {
+        guard let sessionTimeoutInt = configurationSharedState?[LifecycleConstants.Keys.CONFIG_SESSION_TIMEOUT] as? Int else {
+            return TimeInterval(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT)
+        }
+        
+        return TimeInterval(sessionTimeoutInt)
     }
 }

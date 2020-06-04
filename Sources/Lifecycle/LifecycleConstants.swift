@@ -36,6 +36,7 @@ struct LifecycleConstants {
         static let MAX_SESSION_LENGTH  = "maxsessionlength"
         static let PREVIOUS_SESSION_START_TIMESTAMP = "previoussessionstarttimestampmillis"
         static let PREVIOUS_SESSION_PAUSE_TIMESTAMP = "previoussessionpausetimestampmillis"
+        static let CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout"
     }
 
     struct DataStoreKeys {

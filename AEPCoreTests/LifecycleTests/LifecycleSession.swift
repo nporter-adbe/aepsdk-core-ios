@@ -41,7 +41,7 @@ struct LifecycleSession {
         let previousSessionStartDate = sessionContainer.startDate
         let previousSessionPauseDate = sessionContainer.pauseDate
         let previousSessionCrashed = !sessionContainer.successfulClose
-        
+
         // if we have a pause date, check to see if pausedTime is less than the session timeout threshold
         if let unwrappedPreviousSessionDate = previousSessionPauseDate {
             let pausedTimeInSeconds = date.timeIntervalSince1970 - unwrappedPreviousSessionDate.timeIntervalSince1970
