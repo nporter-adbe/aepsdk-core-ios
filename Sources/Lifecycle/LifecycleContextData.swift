@@ -26,8 +26,6 @@ struct LifecycleContextData: Codable {
     func merging(with: LifecycleContextData?) -> LifecycleContextData {
         guard let selfDict = toDictionary(), let otherDict = with?.toDictionary() else { return self }
         
-        
-        
         let mergedDict = selfDict.merging(otherDict) { (selfValue, otherValue) -> Any in
             // properly merge sub dictionaries
             if let selfSubDict = selfValue as? [String: Any], let otherSubDict = otherValue as? [String: Any] {
