@@ -71,16 +71,7 @@ class AEPLifecycle: Extension {
         guard configurationSharedState.status == .set else { return false }
         
         if event.isLifecycleStartEvent {
-            let prevSessionInfo = lifecycleState.start(date: event.timestamp,
-                                                       additionalContextData: event.additionalData,
-                                                       adId: getAdvertisingIdentifier(event: event),
-                                                       sessionTimeout: getSessionTimeoutLength(configurationSharedState: configurationSharedState.value))
-            updateSharedState(event: event, data: lifecycleState.getContextData()?.toEventData() ?? [:])
-            
-            
-            if let unwrappedPrevSessionInfo = prevSessionInfo {
-                dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevSessionInfo.startDate, previousPauseDate: unwrappedPrevSessionInfo.pauseDate)
-            }
+            start(event: event, configurationSharedState: configurationSharedState)
         } else if event.isLifecyclePauseEvent {
             lifecycleState.pause(pauseDate: event.timestamp)
         }
@@ -89,6 +80,23 @@ class AEPLifecycle: Extension {
     }
     
     // MARK: Helpers
+    
+    /// Invokes the start business logic and dispatches any shared state and lifecycle response events required
+    /// - Parameters:
+    ///   - event: the lifecycle start event
+    ///   - configurationSharedState: the current configuration shared state
+    private func start(event: Event, configurationSharedState: (value: [String : Any]?, status: SharedStateStatus)) {
+        let prevSessionInfo = lifecycleState.start(date: event.timestamp,
+                                                   additionalContextData: event.additionalData,
+                                                   adId: getAdvertisingIdentifier(event: event),
+                                                   sessionTimeout: getSessionTimeoutLength(configurationSharedState: configurationSharedState.value))
+        updateSharedState(event: event, data: lifecycleState.getContextData()?.toEventData() ?? [:])
+        
+        
+        if let unwrappedPrevSessionInfo = prevSessionInfo {
+            dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevSessionInfo.startDate, previousPauseDate: unwrappedPrevSessionInfo.pauseDate)
+        }
+    }
     
     /// Attempts to read the advertising identifier from Identity shared state
     /// - Parameter event: event to version the shared state
@@ -133,6 +141,8 @@ class AEPLifecycle: Extension {
         dispatch(event: Event(name: "LifecycleStart", type: .lifecycle, source: .responseContent, data: eventData))
     }
     
+    /// Reads the session timeout from the configuration shared state, if not found returns the default session timeout
+    /// - Parameter configurationSharedState: the data associated with the configuration shared state
     private func getSessionTimeoutLength(configurationSharedState: [String: Any]?) -> TimeInterval {
         guard let sessionTimeoutInt = configurationSharedState?[LifecycleConstants.Keys.CONFIG_SESSION_TIMEOUT] as? Int else {
             return TimeInterval(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT)
