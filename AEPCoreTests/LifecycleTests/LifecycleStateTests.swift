@@ -426,4 +426,28 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertEqual(mockSystemInfoService.getActiveLocaleName(), actualContextData.lifecycleMetrics.locale)
         XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData.lifecycleMetrics.runMode)
     }
+    
+    func testComputeBootDataWithPersisted() {
+        // setup
+        var lifecycleData = LifecycleContextData()
+        lifecycleData.additionalContextData = ["testKey": "testVal"]
+        dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: lifecycleData)
+        
+        // test
+        let actualContextData = lifecycleState.computeBootData()
+        
+        // verify
+        XCTAssertEqual(lifecycleData.additionalContextData, actualContextData.additionalContextData)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.appId)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.deviceResolution)
+        XCTAssertEqual(mockSystemInfoService.getMobileCarrierName(), actualContextData.lifecycleMetrics.carrierName)
+        XCTAssertEqual(mockSystemInfoService.getOperatingSystemName(), actualContextData.lifecycleMetrics.operatingSystem)
+        XCTAssertEqual(mockSystemInfoService.getDeviceName(), actualContextData.lifecycleMetrics.deviceName)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.dayOfTheWeek)
+        XCTAssertNotNil(actualContextData.lifecycleMetrics.hourOfTheDay)
+        XCTAssertTrue(actualContextData.lifecycleMetrics.launchEvent!)
+        XCTAssertEqual(mockSystemInfoService.getActiveLocaleName(), actualContextData.lifecycleMetrics.locale)
+        XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData.lifecycleMetrics.runMode)
+    }
+    
 }

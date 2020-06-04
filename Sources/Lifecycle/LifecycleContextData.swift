@@ -26,7 +26,17 @@ struct LifecycleContextData: Codable {
     func merging(with: LifecycleContextData?) -> LifecycleContextData {
         guard let selfDict = toDictionary(), let otherDict = with?.toDictionary() else { return self }
         
-        let mergedDict = selfDict.merging(otherDict, uniquingKeysWith: { (_, new) in new } )
+        
+        
+        let mergedDict = selfDict.merging(otherDict) { (selfValue, otherValue) -> Any in
+            // properly merge sub dictionaries
+            if let selfSubDict = selfValue as? [String: Any], let otherSubDict = otherValue as? [String: Any] {
+                return selfSubDict.merging(otherSubDict, uniquingKeysWith: { (_, new) in new })
+            }
+            
+            return otherValue
+        }
+        
         guard let mergedDictData = try? JSONSerialization.data(withJSONObject: mergedDict as Any, options: []) else { return self }
         let mergedContextData = try? JSONDecoder().decode(LifecycleContextData.self, from: mergedDictData)
         return mergedContextData ?? self
