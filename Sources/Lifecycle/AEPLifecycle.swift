@@ -33,7 +33,7 @@ class AEPLifecycle: Extension {
         registerListener(type: .genericLifecycle, source: .requestContent, listener: receiveLifecycleRequest(event:))
         registerListener(type: .hub, source: .sharedState, listener: receiveSharedState(event:))
         
-        let sharedStateData = [LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: lifecycleState.computeBootData().toDictionary()]
+        let sharedStateData = [LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: lifecycleState.computeBootData().toEventData()]
         createSharedState(data: sharedStateData as [String : Any], event: nil)
         eventQueue.start()
     }
@@ -68,11 +68,11 @@ class AEPLifecycle: Extension {
             return false
         }
         
-        if configurationSharedState.status == .pending { return false }
+        guard configurationSharedState.status == .set else { return false }
         
         if event.isLifecycleStartEvent {
             let prevSessionInfo = lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
-            updateSharedState(event: event, data: lifecycleState.getContextData()?.toDictionary() ?? [:])
+            updateSharedState(event: event, data: lifecycleState.getContextData()?.toEventData() ?? [:])
             if let unwrappedPrevSessionInfo = prevSessionInfo {
                 dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevSessionInfo.startDate, previousPauseDate: unwrappedPrevSessionInfo.pauseDate)
             }
@@ -117,7 +117,7 @@ class AEPLifecycle: Extension {
     ///   - previousPauseDate: end date of the previous session
     private func dispatchSessionStart(date: Date, contextData: LifecycleContextData?, previousStartDate: Date?, previousPauseDate: Date?) {
         let eventData: [String: Any] = [
-            LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: contextData?.toDictionary() ?? [:],
+            LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: contextData?.toEventData() ?? [:],
             LifecycleConstants.Keys.SESSION_EVENT: LifecycleConstants.START,
             LifecycleConstants.Keys.SESSION_START_TIMESTAMP: date.timeIntervalSince1970,
             LifecycleConstants.Keys.MAX_SESSION_LENGTH: LifecycleConstants.MAX_SESSION_LENGTH_SECONDS,

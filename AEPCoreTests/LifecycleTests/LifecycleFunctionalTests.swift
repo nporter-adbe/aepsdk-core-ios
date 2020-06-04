@@ -59,6 +59,27 @@ class LifecycleFunctionalTests: XCTestCase {
         AEPServiceProvider.shared.systemInfoService = mockSystemInfoService
     }
     
+    private func assertContextData(contextData: [String: Any], additionalContextData: [String: Any]?) {
+        XCTAssertEqual(mockSystemInfoService.mobileCarrierName, contextData[LifecycleMetrics.CodingKeys.carrierName.stringValue] as? String)
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.deviceResolution.stringValue])
+        XCTAssertEqual("1", contextData[LifecycleMetrics.CodingKeys.launches.stringValue] as? String)
+        XCTAssertEqual(mockSystemInfoService.runMode, contextData[LifecycleMetrics.CodingKeys.runMode.stringValue] as? String)
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.installEvent.stringValue])
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.launchEvent.stringValue])
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.monthlyEngagedEvent.stringValue])
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.dailyEngagedEvent.stringValue])
+        XCTAssertEqual(mockSystemInfoService.activeLocaleName, contextData[LifecycleMetrics.CodingKeys.locale.stringValue] as? String)
+        XCTAssertEqual(mockSystemInfoService.activeLocaleName, contextData[LifecycleMetrics.CodingKeys.locale.stringValue] as? String)
+        XCTAssertEqual(mockSystemInfoService.operatingSystemName, contextData[LifecycleMetrics.CodingKeys.operatingSystem.stringValue] as? String)
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.appId.stringValue])
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.hourOfTheDay.stringValue])
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.dayOfTheWeek.stringValue])
+        XCTAssertEqual(mockSystemInfoService.deviceName, contextData[LifecycleMetrics.CodingKeys.deviceName.stringValue] as? String)
+        XCTAssertNotNil(contextData[LifecycleMetrics.CodingKeys.installDate.stringValue])
+        
+        // TODO: Verify format for session data and additional context data
+    }
+    
     private func registerLifecycleAndWaitForSharedState() {
         let expectation = XCTestExpectation(description: "Lifecycle should share first shared state")
         
@@ -70,32 +91,35 @@ class LifecycleFunctionalTests: XCTestCase {
     
     // MARK: lifecycleStart(...) tests
     
-    /// Tests the happy path with for updating the config with a dict
-    func testUpdateConfigurationWithDict() {
+    /// Tests simple start API call
+    func testLifecycleStartSimple() {
         // setup
-//        let configResponseExpectation = XCTestExpectation(description: "Update config dispatches a configuration response content event")
-        let sharedStateExpectation = XCTestExpectation(description: "Update config dispatches configuration shared state")
+        let additionalContextData = ["testKey": "testVal"]
+        let sharedStateExpectation = XCTestExpectation(description: "Lifecycle start dispatches a lifecycle shared state")
+        sharedStateExpectation.expectedFulfillmentCount = 2 // for config shared state and lifecycle shared state
+        let lifecycleResponseExpectation = XCTestExpectation(description: "Lifecycle start dispatches a lifecycle response event")
+        EventHub.shared.createSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, data: [:], event: nil)
         
-//        EventHub.shared.registerListener(parentExtension: MockExtension.self, type: .configuration, source: .responseContent) { (event) in
-//            XCTAssertEqual(event.type, EventType.configuration)
-//            XCTAssertEqual(event.source, EventSource.responseContent)
-//            XCTAssertNotNil(event.data?[ConfigurationConstants.Keys.UPDATE_CONFIG] as? [String: Any])
-//            XCTAssertEqual(configUpdate[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY]!, PrivacyStatus.optedOut.rawValue)
-//            configResponseExpectation.fulfill()
-//        }
+        EventHub.shared.registerListener(parentExtension: MockExtension.self, type: .lifecycle, source: .responseContent) { (event) in
+            XCTAssertEqual(0, event.data?[LifecycleConstants.Keys.PREVIOUS_SESSION_START_TIMESTAMP] as? Int)
+            XCTAssertEqual(0, event.data?[LifecycleConstants.Keys.PREVIOUS_SESSION_PAUSE_TIMESTAMP] as? Int)
+            XCTAssertEqual(LifecycleConstants.MAX_SESSION_LENGTH_SECONDS, event.data?[LifecycleConstants.Keys.MAX_SESSION_LENGTH] as? Double)
+            XCTAssertNotNil(event.data?[LifecycleConstants.Keys.SESSION_START_TIMESTAMP])
+            XCTAssertEqual(LifecycleConstants.START, event.data?[LifecycleConstants.Keys.SESSION_EVENT] as? String)
+            self.assertContextData(contextData: (event.data?[LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA] as? [String: Any])!, additionalContextData: additionalContextData)
+            
+            lifecycleResponseExpectation.fulfill()
+        }
         
         EventHub.shared.registerListener(parentExtension: MockExtension.self, type: .hub, source: .sharedState) { (event) in
-            XCTAssertEqual(event.type, EventType.hub)
-            XCTAssertEqual(event.source, EventSource.sharedState)
-            XCTAssertEqual(LifecycleConstants.EXTENSION_NAME, event.data?[EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER] as! String)
             sharedStateExpectation.fulfill()
         }
         
         // test
-        AEPCore.lifecycleStart(additionalContextData: nil)
+        AEPCore.lifecycleStart(additionalContextData: additionalContextData)
         
         // verify
-        wait(for: [sharedStateExpectation], timeout: 2)
+        wait(for: [lifecycleResponseExpectation, sharedStateExpectation], timeout: 2)
     }
 
 }

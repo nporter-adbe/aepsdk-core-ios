@@ -18,6 +18,13 @@ struct LifecycleContextData: Codable {
     var additionalContextData: [String: String] = [String: String]()
     var advertisingIdentifier: String?
     
+    enum CodingKeys : String, CodingKey {
+        case lifecycleMetrics = "lifecycleMetrics"
+        case sessionContextData = "sessionContextData"
+        case additionalContextData = "additionalcontextdata"
+        case advertisingIdentifier = "advertisingidentifier"
+    }
+    
     init() {}
     
     /// Merges the other `LifecycleContextData` into this, any duplicate keys will resolve the value that is contained within the other `LifecycleContextData`
@@ -42,8 +49,18 @@ struct LifecycleContextData: Codable {
     
     /// Converts this `LifecycleContextData` into a `[String: String]?` dictionary
     /// - Returns: A dictionary representation of the `LifecycleContextData`
-    func toDictionary() -> [String: Any]? {
+    private func toDictionary() -> [String: Any]? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }
         return try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+    }
+    
+    /// Flattens the context data into a dictionary to be used in event data
+    func toEventData() -> [String: Any]? {
+        var selfDict = toDictionary()
+        if let metricsDict = selfDict?.removeValue(forKey: CodingKeys.lifecycleMetrics.stringValue) as? [String: Any] {
+            selfDict = selfDict?.merging(metricsDict, uniquingKeysWith: { (_, new) in new })
+        }
+        
+        return selfDict
     }
 }
