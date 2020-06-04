@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import Foundation
 
 /// Represents context data collected from the Lifecycle extension
-struct LifecycleContextData: Codable {
+struct LifecycleContextData: Codable, Equatable {
     var lifecycleMetrics: LifecycleMetrics = LifecycleMetrics()
     var sessionContextData: [String: String] = [String: String]()
     var additionalContextData: [String: String] = [String: String]()
@@ -60,6 +60,14 @@ struct LifecycleContextData: Codable {
         var selfDict = toDictionary()
         if let metricsDict = selfDict?.removeValue(forKey: CodingKeys.lifecycleMetrics.stringValue) as? [String: Any] {
             selfDict = selfDict?.merging(metricsDict, uniquingKeysWith: { (_, new) in new })
+        }
+        
+        if let additionalContextDataDict = selfDict?.removeValue(forKey: CodingKeys.additionalContextData.stringValue) as? [String: Any] {
+            selfDict = selfDict?.merging(additionalContextDataDict, uniquingKeysWith: { (_, new) in new })
+        }
+        
+        if let sessionContextDataDict = selfDict?.removeValue(forKey: CodingKeys.sessionContextData.stringValue) as? [String: Any] {
+            selfDict = selfDict?.merging(sessionContextDataDict, uniquingKeysWith: { (_, new) in new })
         }
         
         return selfDict
