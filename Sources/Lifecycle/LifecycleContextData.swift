@@ -55,6 +55,7 @@ struct LifecycleContextData: Codable {
     }
     
     /// Flattens the context data into a dictionary to be used in event data
+    /// - Returns: The context data flattened into the event data format
     func toEventData() -> [String: Any]? {
         var selfDict = toDictionary()
         if let metricsDict = selfDict?.removeValue(forKey: CodingKeys.lifecycleMetrics.stringValue) as? [String: Any] {

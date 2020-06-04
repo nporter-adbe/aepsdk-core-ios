@@ -93,8 +93,8 @@ class AEPLifecycle: Extension {
         updateSharedState(event: event, data: lifecycleState.getContextData()?.toEventData() ?? [:])
         
         
-        if let unwrappedPrevSessionInfo = prevSessionInfo {
-            dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevSessionInfo.startDate, previousPauseDate: unwrappedPrevSessionInfo.pauseDate)
+        if let prevSessionInfo = prevSessionInfo {
+            dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: prevSessionInfo.startDate, previousPauseDate: prevSessionInfo.pauseDate)
         }
     }
     
