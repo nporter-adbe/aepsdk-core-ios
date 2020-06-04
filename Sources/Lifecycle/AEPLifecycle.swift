@@ -64,13 +64,15 @@ class AEPLifecycle: Extension {
     /// - Parameter event: a Lifecycle request event
     /// - Returns: True if the Lifecycle event was processed, false if the configuration shared state is not yet ready
     private func handleLifecycleRequest(event: Event) -> Bool {
+        print("processing lifecycle request")
         guard let configurationSharedState = getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event) else {
             return false
         }
-        
+        print(configurationSharedState)
         guard configurationSharedState.status == .set else { return false }
         
         if event.isLifecycleStartEvent {
+            print("processing start event")
             start(event: event, configurationSharedState: configurationSharedState)
         } else if event.isLifecyclePauseEvent {
             lifecycleState.pause(pauseDate: event.timestamp)
@@ -94,6 +96,7 @@ class AEPLifecycle: Extension {
         
         
         if let prevSessionInfo = prevSessionInfo {
+            print("did dispatch session start")
             dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: prevSessionInfo.startDate, previousPauseDate: prevSessionInfo.pauseDate)
         }
     }

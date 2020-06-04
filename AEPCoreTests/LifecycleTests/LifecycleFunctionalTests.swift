@@ -32,6 +32,10 @@ class LifecycleFunctionalTests: XCTestCase {
         registerLifecycleAndWaitForSharedState()
     }
     
+    override func tearDown() {
+        dataStore.removeAll()
+    }
+    
     // helpers
     private func registerExtension<T: Extension> (_ type: T.Type) {
         let expectation = XCTestExpectation(description: "Extension should register")
@@ -162,7 +166,7 @@ class LifecycleFunctionalTests: XCTestCase {
         let additionalContextData = ["testKey": "testVal"]
         let sharedStateExpectation = XCTestExpectation(description: "Lifecycle start dispatches a lifecycle shared state")
         sharedStateExpectation.expectedFulfillmentCount = 2 // for config shared state and lifecycle shared state
-        let lifecycleResponseExpectation = XCTestExpectation(description: "Lifecycle start dispatches a lifecycle response event")
+        let lifecycleResponseExpectation = XCTestExpectation(description: "Lifecycle start dispatches two lifecycle response events")
         lifecycleResponseExpectation.expectedFulfillmentCount = 2
         EventHub.shared.createSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, data: [LifecycleConstants.Keys.CONFIG_SESSION_TIMEOUT: 1], event: nil)
         

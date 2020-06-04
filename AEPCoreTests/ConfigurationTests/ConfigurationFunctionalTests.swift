@@ -30,6 +30,10 @@ class ConfigurationFunctionalTests: XCTestCase {
         registerConfigAndWaitForSharedState()
     }
     
+    override func tearDown() {
+        dataStore.removeAll()
+    }
+    
     // helpers
     private func registerExtension<T: Extension> (_ type: T.Type) {
         let expectation = XCTestExpectation(description: "Extension should register")

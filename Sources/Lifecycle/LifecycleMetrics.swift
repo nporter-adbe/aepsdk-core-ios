@@ -129,12 +129,12 @@ extension LifecycleMetrics: Decodable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        installEvent = (try? values.decode(String?.self, forKey: .installEvent) != nil) ?? false
-        launchEvent = (try? values.decode(String?.self, forKey: .launchEvent) != nil) ?? false
-        crashEvent = (try? values.decode(String?.self, forKey: .crashEvent) != nil) ?? false
-        upgradeEvent = (try? values.decode(String?.self, forKey: .upgradeEvent) != nil) ?? false
-        dailyEngagedEvent = (try? values.decode(String?.self, forKey: .dailyEngagedEvent) != nil) ?? false
-        monthlyEngagedEvent = (try? values.decode(String?.self, forKey: .monthlyEngagedEvent) != nil) ?? false
+        installEvent = (try? values.decode(String?.self, forKey: .installEvent) != nil) ?? nil
+        launchEvent = (try? values.decode(String?.self, forKey: .launchEvent) != nil) ?? nil
+        crashEvent = (try? values.decode(String?.self, forKey: .crashEvent) != nil) ?? nil
+        upgradeEvent = (try? values.decode(String?.self, forKey: .upgradeEvent) != nil) ?? nil
+        dailyEngagedEvent = (try? values.decode(String?.self, forKey: .dailyEngagedEvent) != nil) ?? nil
+        monthlyEngagedEvent = (try? values.decode(String?.self, forKey: .monthlyEngagedEvent) != nil) ?? nil
         if let sdfDateString = try? values.decode(String?.self, forKey: .installDate) {
             installDate = Date.fromSdfString(sdfString: sdfDateString)
         }

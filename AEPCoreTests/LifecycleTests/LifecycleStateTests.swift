@@ -179,8 +179,8 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertEqual(mockSystemInfoService.getOperatingSystemName(), actualContextData?.lifecycleMetrics.operatingSystem)
         XCTAssertNotNil(actualContextData?.lifecycleMetrics.deviceResolution)
         XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics.runMode)
-        XCTAssertFalse(actualContextData?.lifecycleMetrics.upgradeEvent ?? true)
-        XCTAssertFalse(actualContextData?.lifecycleMetrics.crashEvent ?? true)
+        XCTAssertNil(actualContextData?.lifecycleMetrics.upgradeEvent)
+        XCTAssertNil(actualContextData?.lifecycleMetrics.crashEvent)
         XCTAssertNil(prevSessionInfo?.startDate)
         XCTAssertNil(prevSessionInfo?.pauseDate)
     }
