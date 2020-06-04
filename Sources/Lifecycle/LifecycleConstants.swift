@@ -15,6 +15,7 @@ import Foundation
 struct LifecycleConstants {
     static let EXTENSION_NAME = "com.adobe.module.lifecycle"
     static let EXTENSION_VERSION = "0.0.1"
+    static let DATA_STORE_NAME = LifecycleConstants.EXTENSION_NAME
     
     static let START = "start"
     static let PAUSE = "pause"

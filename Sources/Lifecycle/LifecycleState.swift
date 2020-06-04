@@ -54,14 +54,14 @@ struct LifecycleState {
     ///   - additionalContextData: additional context data for this start event
     ///   - adId: The advertising identifier provided by the identity extension
     ///   - sessionTimeout: The session timeout for this start event, defaults to 300 seconds
-    mutating func start(date: Date, additionalContextData: [String: String]?, adId: String?, sessionTimeout: TimeInterval = TimeInterval(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT)) -> (prevStartDate: Date?, prevPauseDate: Date?) {
+    mutating func start(date: Date, additionalContextData: [String: String]?, adId: String?, sessionTimeout: TimeInterval = TimeInterval(LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT)) -> LifecycleSessionInfo? {
         let sessionContainer: LifecyclePersistedContext? = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)
         // Build default LifecycleMetrics
         let metricsBuilder = LifecycleMetricsBuilder(dataStore: dataStore, date: date).addDeviceData()
         let defaultMetrics = metricsBuilder.build()
         applyApplicationUpgrade(appId: defaultMetrics.appId)
         
-        guard let previousSessionInfo = lifecycleSession.start(date: date, sessionTimeout: sessionTimeout, coreMetrics: defaultMetrics) else { return (nil, nil) }
+        guard let previousSessionInfo = lifecycleSession.start(date: date, sessionTimeout: sessionTimeout, coreMetrics: defaultMetrics) else { return nil }
         
         var lifecycleData = LifecycleContextData()
         
@@ -90,7 +90,7 @@ struct LifecycleState {
         lifecycleContextData = lifecycleContextData?.merging(with: lifecycleData) ?? lifecycleData
         persistLifecycleContextData(startDate: date)
         
-        return (previousSessionInfo.startDate, previousSessionInfo.pauseDate)
+        return previousSessionInfo
     }
     
     /// Pauses the current lifecycle session

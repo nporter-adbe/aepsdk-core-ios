@@ -67,7 +67,7 @@ class LifecycleStateTests: XCTestCase {
         dataStore.set(key: LifecycleConstants.DataStoreKeys.LAST_VERSION, value: mockAppVersion)
         
         // test
-        let (prevStartDate, prevPauseDate) = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
+        let prevSessionInfo = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
         
         // verify
         let actualContext: LifecyclePersistedContext = dataStore.getObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT)!
@@ -75,8 +75,7 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertFalse(actualContext.successfulClose)
         XCTAssertNil(actualContext.pauseDate)
         XCTAssertEqual(mockAppVersion, dataStore.getString(key: LifecycleConstants.DataStoreKeys.LAST_VERSION))
-        XCTAssertNil(prevStartDate)
-        XCTAssertNil(prevPauseDate)
+        XCTAssertNil(prevSessionInfo)
     }
     
     func testPreviousSessionCrashed() {
@@ -96,7 +95,7 @@ class LifecycleStateTests: XCTestCase {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.PERSISTED_CONTEXT, value: persistedContext)
         
         // test
-        let (prevStartDate, prevPauseDate) = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
+        let prevSessionInfo = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -123,9 +122,8 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics.runMode)
         XCTAssertTrue(actualContextData?.lifecycleMetrics.upgradeEvent ?? false)
         XCTAssertNil(actualContextData?.lifecycleMetrics.installEvent)
-        XCTAssertEqual(persistedContext.startDate, prevStartDate)
-        XCTAssertEqual(persistedContext.pauseDate, prevPauseDate)
-        
+        XCTAssertEqual(persistedContext.startDate, prevSessionInfo?.startDate)
+        XCTAssertEqual(persistedContext.pauseDate, prevSessionInfo?.pauseDate)
     }
     
     func testStartAppResumeVersionUpgradeNoLifecycleInMemory() {
@@ -143,13 +141,12 @@ class LifecycleStateTests: XCTestCase {
         dataStore.setObject(key: LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA, value: contextData)
         
         // test
-        let (prevStartDate, prevPauseDate) = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
+        let prevSessionInfo = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
         XCTAssertEqual(expectedAppId, actualContextData?.lifecycleMetrics.appId)
-        XCTAssertNil(prevStartDate)
-        XCTAssertNil(prevPauseDate)
+        XCTAssertNil(prevSessionInfo)
     }
     
     func testAppResumeVersionUpgradeLifecycleIsInMemory() {
@@ -162,7 +159,7 @@ class LifecycleStateTests: XCTestCase {
         lifecycleState.lifecycleContextData = contextData
         
         // test
-        let (prevStartDate, prevPauseDate) = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil, sessionTimeout: 200)
+        let prevSessionInfo = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -184,8 +181,8 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertEqual(mockSystemInfoService.getRunMode(), actualContextData?.lifecycleMetrics.runMode)
         XCTAssertFalse(actualContextData?.lifecycleMetrics.upgradeEvent ?? true)
         XCTAssertFalse(actualContextData?.lifecycleMetrics.crashEvent ?? true)
-        XCTAssertNil(prevStartDate)
-        XCTAssertNil(prevPauseDate)
+        XCTAssertNil(prevSessionInfo?.startDate)
+        XCTAssertNil(prevSessionInfo?.pauseDate)
     }
     
     func testStartAppResumeVersionsAreSame() {
@@ -208,13 +205,12 @@ class LifecycleStateTests: XCTestCase {
         
         
         // test
-        let (prevStartDate, prevPauseDate) = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil, sessionTimeout: 200)
+        let prevSessionInfo = lifecycleState.start(date: currentDate, additionalContextData: nil, adId: nil, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
         XCTAssertEqual(expectedAppId, actualContextData?.lifecycleMetrics.appId)
-        XCTAssertNil(prevStartDate)
-        XCTAssertNil(prevPauseDate)
+        XCTAssertNil(prevSessionInfo)
     }
 
     func testStartOverTimeoutAdditionalData() {
@@ -235,7 +231,7 @@ class LifecycleStateTests: XCTestCase {
         let adId = "testAdId"
         
         // test
-        let (prevStartDate, prevPauseDate) = lifecycleState.start(date: currentDate, additionalContextData: additionalData, adId: adId, sessionTimeout: 200)
+        let prevSessionInfo = lifecycleState.start(date: currentDate, additionalContextData: additionalData, adId: adId, sessionTimeout: 200)
         
         // verify
         let actualContextData = lifecycleState.getContextData()
@@ -263,8 +259,8 @@ class LifecycleStateTests: XCTestCase {
         XCTAssertFalse(actualContext.successfulClose )
         XCTAssertEqual(additionalData, actualContextData?.additionalContextData)
         XCTAssertEqual(adId, actualContextData?.advertisingIdentifier)
-        XCTAssertEqual(persistedContext.startDate, prevStartDate)
-        XCTAssertEqual(persistedContext.pauseDate, prevPauseDate)
+        XCTAssertEqual(persistedContext.startDate, prevSessionInfo?.startDate)
+        XCTAssertEqual(persistedContext.pauseDate, prevSessionInfo?.pauseDate)
     }
     
     // MARK: Pause(...) tests

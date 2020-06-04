@@ -17,7 +17,7 @@ class AEPLifecycle: Extension {
     let name = LifecycleConstants.EXTENSION_NAME
     let version = LifecycleConstants.EXTENSION_VERSION
     
-    private let eventQueue = OperationOrderer<EventHandlerMapping>(LifecycleConstants.EXTENSION_VERSION)
+    private let eventQueue = OperationOrderer<EventHandlerMapping>(LifecycleConstants.DATA_STORE_NAME)
     private var lifecycleState: LifecycleState
     
     // MARK: Extension
@@ -71,10 +71,10 @@ class AEPLifecycle: Extension {
         if configurationSharedState.status == .pending { return false }
         
         if event.isLifecycleStartEvent {
-            let (prevStartDate, prevPauseDate) = lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
+            let prevSessionInfo = lifecycleState.start(date: event.timestamp, additionalContextData: event.additionalData, adId: getAdvertisingIdentifier(event: event))
             updateSharedState(event: event, data: lifecycleState.getContextData()?.toDictionary() ?? [:])
-            if let unwrappedPrevStartDate = prevStartDate, let unwrappedPrevPauseDate = prevPauseDate {
-                dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevStartDate, previousPauseDate: unwrappedPrevPauseDate)
+            if let unwrappedPrevSessionInfo = prevSessionInfo {
+                dispatchSessionStart(date: event.timestamp, contextData: lifecycleState.getContextData(), previousStartDate: unwrappedPrevSessionInfo.startDate, previousPauseDate: unwrappedPrevSessionInfo.pauseDate)
             }
         } else if event.isLifecyclePauseEvent {
             lifecycleState.pause(pauseDate: event.timestamp)
@@ -115,14 +115,14 @@ class AEPLifecycle: Extension {
     ///   - contextData: current Lifecycle context data
     ///   - previousStartDate: start date of the previous session
     ///   - previousPauseDate: end date of the previous session
-    private func dispatchSessionStart(date: Date, contextData: LifecycleContextData?, previousStartDate: Date, previousPauseDate: Date) {
+    private func dispatchSessionStart(date: Date, contextData: LifecycleContextData?, previousStartDate: Date?, previousPauseDate: Date?) {
         let eventData: [String: Any] = [
             LifecycleConstants.Keys.LIFECYCLE_CONTEXT_DATA: contextData?.toDictionary() ?? [:],
             LifecycleConstants.Keys.SESSION_EVENT: LifecycleConstants.START,
             LifecycleConstants.Keys.SESSION_START_TIMESTAMP: date.timeIntervalSince1970,
             LifecycleConstants.Keys.MAX_SESSION_LENGTH: LifecycleConstants.MAX_SESSION_LENGTH_SECONDS,
-            LifecycleConstants.Keys.PREVIOUS_SESSION_START_TIMESTAMP: previousStartDate.timeIntervalSince1970,
-            LifecycleConstants.Keys.PREVIOUS_SESSION_PAUSE_TIMESTAMP: previousPauseDate.timeIntervalSince1970
+            LifecycleConstants.Keys.PREVIOUS_SESSION_START_TIMESTAMP: previousStartDate?.timeIntervalSince1970 ?? 0,
+            LifecycleConstants.Keys.PREVIOUS_SESSION_PAUSE_TIMESTAMP: previousPauseDate?.timeIntervalSince1970 ?? 0
         ]
         
         dispatch(event: Event(name: "LifecycleStart", type: .lifecycle, source: .responseContent, data: eventData))
