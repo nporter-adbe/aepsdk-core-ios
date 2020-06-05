@@ -17,13 +17,9 @@ import XCTest
 class LifecycleFunctionalTests: XCTestCase {
     var dataStore = NamedKeyValueStore(name: LifecycleConstants.DATA_STORE_NAME)
     var mockSystemInfoService: MockSystemInfoService!
-    var mockDataStore: MockDataStore!
     
     override func setUp() {
-        
-        mockDataStore = MockDataStore()
-        AEPServiceProvider.shared.namedKeyValueService = mockDataStore
-        
+        AEPServiceProvider.shared.namedKeyValueService = MockDataStore()
         setupMockSystemInfoService()
         MockExtension.reset()
         EventHub.reset()

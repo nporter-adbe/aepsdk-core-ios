@@ -15,12 +15,11 @@ import XCTest
 
 /// Functional tests for the Configuration extension
 class ConfigurationFunctionalTests: XCTestCase {
-    var dataStore = NamedKeyValueStore(name: ConfigurationConstants.DATA_STORE_NAME)
     
     override func setUp() {
         AEPServiceProvider.shared.networkService = MockConfigurationDownloaderNetworkService(shouldReturnValidResponse: false)
         AEPServiceProvider.shared.systemInfoService = MockSystemInfoService()
-        dataStore.removeAll()
+        AEPServiceProvider.shared.namedKeyValueService = MockDataStore()
         MockExtension.reset()
         EventHub.reset()
         registerExtension(MockExtension.self)
@@ -28,10 +27,6 @@ class ConfigurationFunctionalTests: XCTestCase {
         EventHub.shared.start()
         // Wait for first shared state from configuration to signal bootup has completed
         registerConfigAndWaitForSharedState()
-    }
-    
-    override func tearDown() {
-        dataStore.removeAll()
     }
     
     // helpers
