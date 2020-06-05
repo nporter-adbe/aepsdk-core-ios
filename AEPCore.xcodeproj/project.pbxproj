@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		211EE8542489C08200FEB362 /* MockDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 211EE8532489C08200FEB362 /* MockDataStore.swift */; };
 		21315BB524575ED200D1B254 /* AEPCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB424575ED200D1B254 /* AEPCore.swift */; };
 		21315BBA24579C4A00D1B254 /* AtomicCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB924579C4A00D1B254 /* AtomicCounter.swift */; };
 		21315BBB24579F1800D1B254 /* AtomicCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB924579C4A00D1B254 /* AtomicCounter.swift */; };
@@ -109,6 +110,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		211EE8532489C08200FEB362 /* MockDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataStore.swift; sourceTree = "<group>"; };
 		21315BB424575ED200D1B254 /* AEPCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AEPCore.swift; path = Sources/AEPCore.swift; sourceTree = "<group>"; };
 		21315BB924579C4A00D1B254 /* AtomicCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtomicCounter.swift; sourceTree = "<group>"; };
 		2131A1B12465D81400F1392D /* AEPCore+ConfigurationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AEPCore+ConfigurationTests.swift"; sourceTree = "<group>"; };
@@ -244,6 +246,7 @@
 				D4000F2B2458E8350052C536 /* MockNetworkServiceOverrider.swift */,
 				21F02C3D2477819100D25528 /* MockConfigurationDownloader.swift */,
 				21A10254248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift */,
+				211EE8532489C08200FEB362 /* MockDataStore.swift */,
 			);
 			path = TestHelpers;
 			sourceTree = "<group>";
@@ -637,6 +640,7 @@
 				21F9174C2433E429000743E3 /* MockExtensionTwo.swift in Sources */,
 				21A10255248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift in Sources */,
 				218208ED247EED6D003D3591 /* ConfigurationFunctionalTests.swift in Sources */,
+				211EE8542489C08200FEB362 /* MockDataStore.swift in Sources */,
 				7629742F24294249005CCC73 /* SharedStateTest.swift in Sources */,
 				785220D6245CA92F00B46E90 /* NamedKeyValueServiceTest.swift in Sources */,
 				21868098248992C200A7EB35 /* LifecycleContextDataTests.swift in Sources */,

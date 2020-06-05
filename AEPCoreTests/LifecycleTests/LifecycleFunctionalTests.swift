@@ -17,23 +17,20 @@ import XCTest
 class LifecycleFunctionalTests: XCTestCase {
     var dataStore = NamedKeyValueStore(name: LifecycleConstants.DATA_STORE_NAME)
     var mockSystemInfoService: MockSystemInfoService!
+    var mockDataStore: MockDataStore!
     
     override func setUp() {
-        AEPServiceProvider.shared.networkService = MockConfigurationDownloaderNetworkService(shouldReturnValidResponse: true)
+        
+        mockDataStore = MockDataStore()
+        AEPServiceProvider.shared.namedKeyValueService = mockDataStore
+        
         setupMockSystemInfoService()
-        dataStore.removeAll()
         MockExtension.reset()
         EventHub.reset()
+        EventHub.shared.start()
         registerExtension(MockExtension.self)
         registerExtension(AEPConfiguration.self)
-        
-        EventHub.shared.start()
-        // Wait for first shared state from lifecycle to signal bootup has completed
-        registerLifecycleAndWaitForSharedState()
-    }
-    
-    override func tearDown() {
-        dataStore.removeAll()
+        registerExtension(AEPLifecycle.self)
     }
     
     // helpers
@@ -84,15 +81,6 @@ class LifecycleFunctionalTests: XCTestCase {
         // TODO: Verify format for session data and additional context data
     }
     
-    private func registerLifecycleAndWaitForSharedState() {
-        let expectation = XCTestExpectation(description: "Lifecycle should share first shared state")
-        
-        EventHub.shared.registerListener(parentExtension: MockExtension.self, type: .hub, source: .sharedState) { _ in expectation.fulfill() }
-        registerExtension(AEPLifecycle.self)
-        
-        wait(for: [expectation], timeout: 0.5)
-    }
-    
     // MARK: lifecycleStart(...) tests
     
     /// Tests simple start API call
@@ -102,6 +90,8 @@ class LifecycleFunctionalTests: XCTestCase {
         let sharedStateExpectation = XCTestExpectation(description: "Lifecycle start dispatches a lifecycle shared state")
         sharedStateExpectation.expectedFulfillmentCount = 2 // for config shared state and lifecycle shared state
         let lifecycleResponseExpectation = XCTestExpectation(description: "Lifecycle start dispatches a lifecycle response event")
+        lifecycleResponseExpectation.assertForOverFulfill = true
+        
         EventHub.shared.createSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, data: [:], event: nil)
         
         EventHub.shared.registerListener(parentExtension: MockExtension.self, type: .lifecycle, source: .responseContent) { (event) in
