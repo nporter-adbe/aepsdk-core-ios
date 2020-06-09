@@ -11,7 +11,27 @@ governing permissions and limitations under the License.
 
 import Foundation
 
-extension NetworkRequest {
+extension NetworkService {
+    
+    /// Sends the `NetworkRequest` responsible for sending an opt-out hit
+    /// - Parameters:
+    ///   - orgId: the org id from Configuration
+    ///   - mid: the mid
+    ///   - experienceCloudServer: the experience cloud server
+    func sendOptOutRequest(orgId: String, mid: String, experienceCloudServer: String) {
+        guard let networkRequest = NetworkRequest.optOutNetworkRequest(orgId: orgId, mid: mid, experienceCloudServer: experienceCloudServer) else { return }
+        AEPServiceProvider.shared.networkService.connectAsync(networkRequest: networkRequest, completionHandler: nil) // fire and forget
+    }
+}
+
+private extension NetworkRequest {
+    
+    /// Builds the `NetworkRequest` responsible for sending an opt-out hit
+    /// - Parameters:
+    ///   - orgId: the org id from Configuration
+    ///   - mid: the mid
+    ///   - experienceCloudServer: the experience cloud server
+    /// - Returns: A network request configured to send the opt-out request, nil if failed
     static func optOutNetworkRequest(orgId: String, mid: String, experienceCloudServer: String) -> NetworkRequest? {
         var components = URLComponents()
         components.scheme = "https"

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2126A69624900433003D5F83 /* NetworkRequest+Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2126A69524900433003D5F83 /* NetworkRequest+Identity.swift */; };
+		2126A69624900433003D5F83 /* NetworkService+Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2126A69524900433003D5F83 /* NetworkService+Identity.swift */; };
 		21315BB524575ED200D1B254 /* AEPCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB424575ED200D1B254 /* AEPCore.swift */; };
 		21315BBA24579C4A00D1B254 /* AtomicCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB924579C4A00D1B254 /* AtomicCounter.swift */; };
 		21315BBB24579F1800D1B254 /* AtomicCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB924579C4A00D1B254 /* AtomicCounter.swift */; };
@@ -114,7 +114,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2126A69524900433003D5F83 /* NetworkRequest+Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkRequest+Identity.swift"; sourceTree = "<group>"; };
+		2126A69524900433003D5F83 /* NetworkService+Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NetworkService+Identity.swift"; sourceTree = "<group>"; };
 		21315BB424575ED200D1B254 /* AEPCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AEPCore.swift; path = Sources/AEPCore.swift; sourceTree = "<group>"; };
 		21315BB924579C4A00D1B254 /* AtomicCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtomicCounter.swift; sourceTree = "<group>"; };
 		2131A1B12465D81400F1392D /* AEPCore+ConfigurationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AEPCore+ConfigurationTests.swift"; sourceTree = "<group>"; };
@@ -297,7 +297,7 @@
 			children = (
 				2181948A2489F66D004F869A /* Identity.swift */,
 				214B5222248ABC710034BF22 /* AEPIdentity.swift */,
-				2126A69524900433003D5F83 /* NetworkRequest+Identity.swift */,
+				2126A69524900433003D5F83 /* NetworkService+Identity.swift */,
 				214B5224248ABCEB0034BF22 /* AEPIdentity+Identity.swift */,
 				214B5226248ABD5D0034BF22 /* IdentityConstants.swift */,
 				2181948C2489FA40004F869A /* MobileVisitorAuthenticationState.swift */,
@@ -610,7 +610,7 @@
 				785220D4245C921D00B46E90 /* NamedUserDefaultKeyValueService.swift in Sources */,
 				78A642572486C98E004B4E46 /* ThreadSafeArray.swift in Sources */,
 				2179F1842464901A0004A7C0 /* AEPLifecycle.swift in Sources */,
-				2126A69624900433003D5F83 /* NetworkRequest+Identity.swift in Sources */,
+				2126A69624900433003D5F83 /* NetworkService+Identity.swift in Sources */,
 				21DB708D242AAD3D00568A4C /* ExtensionContainer.swift in Sources */,
 				78D754DF243BC34100DB9124 /* SystemInfoService.swift in Sources */,
 				21629DAC2461CA88009D05BF /* LifecycleConstants.swift in Sources */,
