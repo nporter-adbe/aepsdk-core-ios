@@ -15,6 +15,7 @@ struct IdentityConstants {
     static let RESPONSE_KEY_ORGID = "d_orgid"
     static let RESPONSE_KEY_MID = "d_mid"
     static let KEY_PATH_OPTOUT = "demoptout.jpg"
+    static let DEFAULT_SERVER = "dpm.demdex.net"
     
     struct EventDataKeys {
         static let BASE_URL = "baseurl"

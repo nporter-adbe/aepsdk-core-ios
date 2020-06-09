@@ -31,6 +31,8 @@ struct ConfigurationConstants {
         static let PERSISTED_APPID = "config.appID"
         static let IS_INTERNAL_EVENT = "config.isinternalevent"
         static let CONFIG_CACHE_PREFIX = "cached.config."
+        static let EXPERIENCE_CLOUD_ORGID = "experienceCloud.org"
+        static let EXPERIENCE_CLOUD_SERVER = "experienceCloud.server"
     }
 
     struct Privacy {

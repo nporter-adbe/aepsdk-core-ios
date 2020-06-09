@@ -47,10 +47,13 @@ class AEPIdentity: Extension {
         
         let configurationSharedState = getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event)
         
-        if configurationSharedState?.status == .pending { return true }
+        if configurationSharedState?.status == .pending { return false }
         
+        let identityConfiguration = IdentityConfiguration(configurationSharedState: configurationSharedState?.value)
+        if identityConfiguration.privacyStatus == .optedOut {
+            AEPServiceProvider.shared.networkService.sendOptOutRequest(orgId: identityConfiguration.orgId, mid: "TODO", experienceCloudServer: identityConfiguration.experienceCloudServer)
+        }
         
-        
-        return false
+        return true
     }
 }
