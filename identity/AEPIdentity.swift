@@ -24,9 +24,7 @@ class AEPIdentity: Extension {
     
     func onRegistered() {
         eventQueue.start()
-        registerListener(type: .hub, source: .sharedState) { (event) in
-            
-        }
+        registerListener(type: .hub, source: .sharedState, listener: receiveSharedState(event:))
     }
     
     func onUnregistered() {}

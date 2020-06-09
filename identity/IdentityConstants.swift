@@ -12,6 +12,10 @@ governing permissions and limitations under the License.
 import Foundation
 
 struct IdentityConstants {
+    static let RESPONSE_KEY_ORGID = "d_orgid"
+    static let RESPONSE_KEY_MID = "d_mid"
+    static let KEY_PATH_OPTOUT = "demoptout.jpg"
+    
     struct EventDataKeys {
         static let BASE_URL = "baseurl"
         static let UPDATED_URL = "updatedurl"
