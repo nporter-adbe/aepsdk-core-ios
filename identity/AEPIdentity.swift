@@ -25,6 +25,7 @@ class AEPIdentity: Extension {
     func onRegistered() {
         eventQueue.start()
         registerListener(type: .hub, source: .sharedState, listener: receiveSharedState(event:))
+        registerListener(type: .audienceManager, source: .responseContent, listener: receiveSharedState(event:))
     }
     
     func onUnregistered() {}
@@ -35,5 +36,21 @@ class AEPIdentity: Extension {
         if ConfigurationConstants.EXTENSION_NAME == stateOwner {
             eventQueue.start()
         }
+    }
+    
+    private func receiveAudience(event: Event) {
+        eventQueue.add((event, handleAudience(event:)))
+    }
+    
+    private func handleAudience(event: Event) -> Bool {
+        guard let optedOutHitSent = event.optedOutHitSent, optedOutHitSent == false else { return true }
+        
+        let configurationSharedState = getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event)
+        
+        if configurationSharedState?.status == .pending { return true }
+        
+        
+        
+        return false
     }
 }

@@ -26,5 +26,10 @@ struct IdentityConstants {
         static let FORCE_SYNC = "forcesync"
         static let IS_SYNC_EVENT = "issyncevent"
         static let URL_VARIABLES = "urlvariables"
+        
+        struct Audience {
+            static let OPTED_OUT_HIT_SENT = ""
+        }
+        
     }
 }
