@@ -24,7 +24,18 @@ class AEPIdentity: Extension {
     
     func onRegistered() {
         eventQueue.start()
+        registerListener(type: .hub, source: .sharedState) { (event) in
+            
+        }
     }
     
     func onUnregistered() {}
+    
+    private func receiveSharedState(event: Event) {
+        guard let stateOwner = event.data?[EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER] as? String else { return }
+        
+        if ConfigurationConstants.EXTENSION_NAME == stateOwner {
+            eventQueue.start()
+        }
+    }
 }
