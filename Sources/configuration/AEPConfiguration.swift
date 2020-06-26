@@ -16,16 +16,15 @@ class AEPConfiguration: Extension {
     var name = ConfigurationConstants.EXTENSION_NAME
     var version = ConfigurationConstants.EXTENSION_VERSION
 
-    private let eventQueue = OperationOrderer<EventHandlerMapping>(ConfigurationConstants.EXTENSION_NAME)
     private let dataStore = NamedKeyValueStore(name: ConfigurationConstants.DATA_STORE_NAME)
     private var appIdManager: LaunchIDManager
     private var configState: ConfigurationState // should only be modified/used within the event queue
+    private var readyForNextEvent = true
     
     // MARK: Extension
     
     /// Initializes the Configuration extension and it's dependencies
     required init() {
-        eventQueue.setHandler({ return $0.handler($0.event) })
         appIdManager = LaunchIDManager(dataStore: dataStore)
         configState = ConfigurationState(dataStore: dataStore, configDownloader: ConfigurationDownloader())
     }
@@ -49,60 +48,46 @@ class AEPConfiguration: Extension {
             dispatch(event: responseEvent)
         }
         pendingResolver(configState.currentConfiguration)
-        eventQueue.start()
     }
     
     /// Invoked when the Configuration extension has been unregistered by the `EventHub`, currently a no-op.
     func onUnregistered() {}
 
+    func readyForEvent(_ event: Event) -> Bool {
+        return readyForNextEvent
+    }
+    
     // MARK: Event Listeners
     
     /// Invoked by the `eventQueue` each time a new configuration request event is received
     /// - Parameter event: A configuration request event
     private func receiveConfigurationRequest(event: Event) {
-        eventQueue.add((event, handleConfigurationRequest(event:)))
+        if event.isUpdateConfigEvent {
+            readyForNextEvent = processUpdateConfig(event: event, sharedStateResolver: createPendingSharedState(event: event))
+        } else if event.isGetConfigEvent {
+            dispatchConfigurationResponse(triggerEvent: event, data: configState.currentConfiguration)
+            readyForNextEvent = true
+        } else if let appId = event.appId {
+            readyForNextEvent = processConfigureWith(appId: appId, event: event, sharedStateResolver: createPendingSharedState(event: event))
+        } else if let filePath = event.filePath {
+            readyForNextEvent = processConfigureWith(filePath: filePath, event: event, sharedStateResolver: createPendingSharedState(event: event))
+        }
     }
     
     /// Invoked by the `eventQueue` each time a new lifecycle response event is received
     /// - Parameter event: A lifecycle response event
     private func receiveLifecycleResponse(event: Event) {
-        eventQueue.add((event, handleLifecycle(event:)))
-    }
-
-    // MARK: Event Handlers
-    
-    /// Handles  the configuration request event and determines which business logic should be invoked
-    /// - Parameter event: A configuration request event
-    /// - Returns: True if processing the Configuration request event succeeded, otherwise false
-    private func handleConfigurationRequest(event: Event) -> Bool {
-        if event.isUpdateConfigEvent {
-            return processUpdateConfig(event: event, sharedStateResolver: createPendingSharedState(event: event))
-        } else if event.isGetConfigEvent {
-            dispatchConfigurationResponse(triggerEvent: event, data: configState.currentConfiguration)
-        } else if let appId = event.appId {
-            return processConfigureWith(appId: appId, event: event, sharedStateResolver: createPendingSharedState(event: event))
-        } else if let filePath = event.filePath {
-            return processConfigureWith(filePath: filePath, event: event, sharedStateResolver: createPendingSharedState(event: event))
-        }
-
-        return true
-    }
-    
-    /// Handles the Lifecycle response event and dispatches a configuration request event if we have an appId in persistence
-    /// - Parameter event: The lifecycle response event
-    /// - Returns: True if processing the Lifecycle event succeeded, otherwise false
-    private func handleLifecycle(event: Event) -> Bool {
         // Re-fetch the latest config if appId is present.
         // Lifecycle does not load bundled/manual configuration if appId is absent.
         guard let appId = appIdManager.loadAppId(), !appId.isEmpty else {
-            return true
+            // TODO: Add error log
+            return
         }
 
         // Dispatch an event with appId to start remote download
         let data: [String: Any] = [ConfigurationConstants.Keys.JSON_APP_ID: appId,
                                    ConfigurationConstants.Keys.IS_INTERNAL_EVENT: true]
         dispatchConfigurationRequest(data: data)
-        return true
     }
 
     // MARK: Event Processors
@@ -148,15 +133,16 @@ class AEPConfiguration: Extension {
         // check if the configuration state has downloaded the config associated with appId, if so early exit
         guard !configState.hasDownloadedConfig(appId: appId) else { return true }
         
-        // stop all other event processing while we are attempting to download the config
-        eventQueue.stop()
         configState.updateWith(appId: appId) { [weak self] (config) in
             if let _ = config {
                 self?.publishCurrentConfig(event: event, sharedStateResolver: sharedStateResolver)
-                self?.eventQueue.start()
+                self?.readyForNextEvent = true
             } else {
                 // If downloading config failed try again later
-                self?.eventQueue.start(after: ConfigurationConstants.DOWNLOAD_RETRY_INTERVAL) // retry config every 5 seconds
+                // TODO: Don't use main thread
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                    let _ = self?.processConfigureWith(appId: appId, event: event, sharedStateResolver: sharedStateResolver)
+                }
             }
         }
         
