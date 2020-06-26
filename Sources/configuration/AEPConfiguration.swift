@@ -63,14 +63,13 @@ class AEPConfiguration: Extension {
     /// - Parameter event: A configuration request event
     private func receiveConfigurationRequest(event: Event) {
         if event.isUpdateConfigEvent {
-            readyForNextEvent = processUpdateConfig(event: event, sharedStateResolver: createPendingSharedState(event: event))
+            processUpdateConfig(event: event, sharedStateResolver: createPendingSharedState(event: event))
         } else if event.isGetConfigEvent {
             dispatchConfigurationResponse(triggerEvent: event, data: configState.currentConfiguration)
-            readyForNextEvent = true
         } else if let appId = event.appId {
             readyForNextEvent = processConfigureWith(appId: appId, event: event, sharedStateResolver: createPendingSharedState(event: event))
         } else if let filePath = event.filePath {
-            readyForNextEvent = processConfigureWith(filePath: filePath, event: event, sharedStateResolver: createPendingSharedState(event: event))
+            processConfigureWith(filePath: filePath, event: event, sharedStateResolver: createPendingSharedState(event: event))
         }
     }
     
@@ -96,20 +95,18 @@ class AEPConfiguration: Extension {
     /// - Parameters:
     ///   - event: The `event` which contains the new configuration
     ///   - sharedStateResolver: Shared state resolver that will be invoked with the new configuration
-    /// - Returns: True if processing the update configuration event succeeds, false otherwise
-    private func processUpdateConfig(event: Event, sharedStateResolver: SharedStateResolver) -> Bool {
+    private func processUpdateConfig(event: Event, sharedStateResolver: SharedStateResolver) {
         // Update the overriddenConfig with the new config from API and persist them in disk, and abort if overridden config is empty
         guard let updatedConfig = event.data?[ConfigurationConstants.Keys.UPDATE_CONFIG] as? [String: Any], !updatedConfig.isEmpty else {
             // error, resolve pending shared state with current config
             sharedStateResolver(configState.currentConfiguration)
-            return true
+            return
         }
         
         configState.updateWith(programmaticConfig: updatedConfig)
         // Create shared state and dispatch configuration response content
         sharedStateResolver(configState.currentConfiguration)
         dispatchConfigurationResponse(triggerEvent: event, data: event.data)
-        return true
     }
     
     /// Interacts with the `ConfigurationState` to download the configuration associated with `appId`
@@ -155,11 +152,11 @@ class AEPConfiguration: Extension {
     ///   - filePath: The file path at which the configuration should be loaded from
     ///   - event: The event responsible for the API call
     ///   - sharedStateResolver: Shared state resolver that will be invoked with the new configuration
-    private func processConfigureWith(filePath: String, event: Event, sharedStateResolver: SharedStateResolver) -> Bool {
+    private func processConfigureWith(filePath: String, event: Event, sharedStateResolver: SharedStateResolver) {
         guard let filePath = event.data?[ConfigurationConstants.Keys.JSON_FILE_PATH] as? String, !filePath.isEmpty else {
             // Error: Shared state is updated with previous config
             sharedStateResolver(configState.currentConfiguration)
-            return true
+            return
         }
 
         if configState.updateWith(filePath: filePath) {
@@ -168,8 +165,6 @@ class AEPConfiguration: Extension {
             // loading from bundled config failed, resolve shared state with current config without dispatching a config response event
             sharedStateResolver(configState.currentConfiguration)
         }
-
-        return true
     }
 
     // MARK: Dispatchers
