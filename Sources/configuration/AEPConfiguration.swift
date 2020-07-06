@@ -19,7 +19,6 @@ class AEPConfiguration: Extension {
     private let dataStore = NamedKeyValueStore(name: ConfigurationConstants.DATA_STORE_NAME)
     private var appIdManager: LaunchIDManager
     private var configState: ConfigurationState // should only be modified/used within the event queue
-    private var readyForNextEvent = true
     
     // MARK: Extension
     
@@ -54,7 +53,7 @@ class AEPConfiguration: Extension {
     func onUnregistered() {}
 
     func readyForEvent(_ event: Event) -> Bool {
-        return readyForNextEvent
+        return true
     }
     
     // MARK: Event Listeners
@@ -67,7 +66,7 @@ class AEPConfiguration: Extension {
         } else if event.isGetConfigEvent {
             dispatchConfigurationResponse(triggerEvent: event, data: configState.currentConfiguration)
         } else if let appId = event.appId {
-            readyForNextEvent = processConfigureWith(appId: appId, event: event, sharedStateResolver: createPendingSharedState(event: event))
+            processConfigureWith(appId: appId, event: event, sharedStateResolver: createPendingSharedState(event: event))
         } else if let filePath = event.filePath {
             processConfigureWith(filePath: filePath, event: event, sharedStateResolver: createPendingSharedState(event: event))
         }
@@ -114,26 +113,26 @@ class AEPConfiguration: Extension {
     ///   - appId: The appId for which a configuration should be downloaded from
     ///   - event: The event responsible for the API call
     ///   - sharedStateResolver: Shared state resolver that will be invoked with the new configuration
-    private func processConfigureWith(appId: String, event: Event, sharedStateResolver: @escaping SharedStateResolver) -> Bool {
+    private func processConfigureWith(appId: String, event: Event, sharedStateResolver: @escaping SharedStateResolver) {
         guard !appId.isEmpty else {
             // Error: No appId provided or its empty, resolve pending shared state with current config
             sharedStateResolver(configState.currentConfiguration)
-            return true
+            return
         }
 
         guard validateForInternalEventAppIdChange(event: event, newAppId: appId) else {
             // error: app Id update already in-flight, resolve pending shared state with current config
             sharedStateResolver(configState.currentConfiguration)
-            return true
+            return
         }
         
         // check if the configuration state has downloaded the config associated with appId, if so early exit
-        guard !configState.hasDownloadedConfig(appId: appId) else { return true }
-        
+        guard !configState.hasDownloadedConfig(appId: appId) else { return }
+        stopEvents()
         configState.updateWith(appId: appId) { [weak self] (config) in
             if let _ = config {
                 self?.publishCurrentConfig(event: event, sharedStateResolver: sharedStateResolver)
-                self?.readyForNextEvent = true
+                self?.startEvents()
             } else {
                 // If downloading config failed try again later
                 // TODO: Don't use main thread
@@ -142,9 +141,6 @@ class AEPConfiguration: Extension {
                 }
             }
         }
-        
-        // always return false to pause the queue while the configuration is being downloaded
-        return false
     }
     
     /// Interacts with the `ConfigurationState` to fetch the configuration associated with `filePath`
