@@ -10,6 +10,7 @@ governing permissions and limitations under the License.
 */
 
 import XCTest
+@testable import AEPCore
 
 class URLAppenderTests: XCTestCase {
     // MARK: appendVisitorInfo(...) tests
@@ -17,4 +18,36 @@ class URLAppenderTests: XCTestCase {
     // MARK: generateVisitorIdPayload(...) tests
     
     // MARK: appendParameterToVisitorIdString(...) tests
+    
+    func testAppendParameterToVisitorIdStringShouldHandleEmpty() {
+        // test
+        let result = URLAppender.appendParameterToVisitorIdString(original: "", key: "key1", value: "val1")
+        
+        // verify
+        XCTAssertEqual("key1=val1", result)
+    }
+    
+    func testAppendParameterToVisitorIdStringReturnsOriginalIfKeyIsEmpty() {
+        // test
+        let result = URLAppender.appendParameterToVisitorIdString(original: "testOriginal", key: "", value: "val1")
+        
+        // verify
+        XCTAssertEqual("testOriginal", result)
+    }
+    
+    func testAppendParameterToVisitorIdStringReturnsOriginalIfValueIsEmpty() {
+        // test
+        let result = URLAppender.appendParameterToVisitorIdString(original: "testOriginal", key: "key1", value: "")
+        
+        // verify
+        XCTAssertEqual("testOriginal", result)
+    }
+    
+    func testAppendParameterToVisitorIdStringHappy() {
+        // test
+        let result = URLAppender.appendParameterToVisitorIdString(original: "hello=world", key: "key1", value: "val1")
+        
+        // verify
+        XCTAssertEqual("hello=world|key1=val1", result)
+    }
 }
