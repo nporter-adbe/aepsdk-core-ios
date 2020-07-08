@@ -17,6 +17,26 @@ class URLAppenderTests: XCTestCase {
     
     // MARK: generateVisitorIdPayload(...) tests
     
+    func testGenerateVisitorIdPayloadHappy() {
+        // setup
+        let expected = "MCMID%3D83056071767212492011535942034357093219%7CMCAID%3Dtest_aid%7CMCORGID%3D29849020983%40adobeOrg"
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org-id", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        var props = IdentityProperties()
+        props.mid = MID()
+        
+        // test
+        let result = URLAppender.generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: [:], identityProperties: props)
+        
+        // verify
+        
+        // verify that the url starts with Visitor Payload key
+        XCTAssertTrue(result?.hasPrefix(IdentityConstants.VISITOR_PAYLOAD_KEY) ?? false)
+        
+        // verify timestamp parameter
+        
+        
+    }
+    
     // MARK: appendParameterToVisitorIdString(...) tests
     
     func testAppendParameterToVisitorIdStringShouldHandleEmpty() {

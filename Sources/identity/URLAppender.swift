@@ -17,8 +17,16 @@ private extension String {
     }
 }
 
+/// Provides functions to append visitor information to a URL
 struct URLAppender {
     
+    /// Appends identity payload to base url, present in the event data of the event param.
+    /// - Parameters:
+    ///   - baseUrl: url to which the identity payload needs to be appended onto
+    ///   - configSharedState: config shared state corresponding to the event to be processed
+    ///   - analyticsSharedState: analytics shared state corresponding to the event to be processed
+    ///   - identityProperties: the current identity properties
+    /// - Returns: `baseUrl` with the identity payload appended
     static func appendVisitorInfo(baseUrl: String, configSharedState: [String: Any], analyticsSharedState: [String: Any], identityProperties: IdentityProperties) -> String {
         if baseUrl.isEmpty {
             return baseUrl
@@ -55,6 +63,12 @@ struct URLAppender {
         return modifiedUrl
     }
     
+    /// Generates the string for the identity visitor payload
+    /// - Parameters:
+    ///   - configSharedState: config shared state corresponding to the event to be processed
+    ///   - analyticsSharedState: analytics shared state corresponding to the event to be processed
+    ///   - identityProperties: the current identity properties
+    /// - Returns a string formatted with the visitor id payload
     static func generateVisitorIdPayload(configSharedState: [String: Any], analyticsSharedState: [String: Any], identityProperties: IdentityProperties) -> String? {
         // append timestamp
         var theIdString = appendParameterToVisitorIdString(original: "", key: IdentityConstants.VISITOR_TIMESTAMP_KEY, value: String(Date().timeIntervalSince1970))
@@ -78,6 +92,12 @@ struct URLAppender {
         return urlFragment
     }
     
+    /// Appends the parameter to the original string
+    /// - Parameters:
+    ///   - original: the base url to have the parameter appended to
+    ///   - key: key to be appended to the url, expected to be non-empty
+    ///   - value: value to be appended to the url, expected to be non-empty
+    /// - Returns: `original` with `key` and `value` properly appended
     static func appendParameterToVisitorIdString(original: String, key: String, value: String) -> String {
         if key.isEmpty || value.isEmpty {
             return original
