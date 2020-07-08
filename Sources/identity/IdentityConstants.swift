@@ -27,6 +27,10 @@ struct IdentityConstants {
     static let DEFAULT_SERVER = "dpm.demdex.net"
     static let CID_DELIMITER = "%01"
     static let ADID_DSID = "DSID_20915"
+    static let VISITOR_TIMESTAMP_KEY = "TS"
+    static let VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY = "MCMID"
+    static let VISITOR_PAYLOAD_KEY = "adobe_mc"
+    static let VISITOR_PAYLOAD_MARKETING_CLOUD_ORG_ID = "MCORGID"
     
     struct EventDataKeys {
         static let BASE_URL = "baseurl"

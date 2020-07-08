@@ -47,4 +47,8 @@ extension Event {
                               identifier: adId,
                               authenticationState: .authenticated)
     }
+    
+    var baseUrl: String? {
+        return data?[IdentityConstants.EventDataKeys.BASE_URL] as? String
+    }
 }

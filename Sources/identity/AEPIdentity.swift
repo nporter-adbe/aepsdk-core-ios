@@ -43,7 +43,16 @@ class AEPIdentity: Extension {
             if let eventData = state.syncIdentifiers(event: event) {
                 createSharedState(data: eventData, event: event)
             }
+        } else if let _ = event.baseUrl {
+            handleAppendUrl(event: event)
         }
         // TODO: Handle appendUrl, getUrlVariables, IdentifiersRequest
+    }
+    
+    private func handleAppendUrl(event: Event) {
+        let analyticsSharedState = getSharedState(extensionName: "Analytics", event: event)?.value
+        
+        
+        
     }
 }
