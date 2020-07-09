@@ -118,11 +118,11 @@ public extension Extension {
 
 /// Contains methods that we don't want developers accessing
 private extension Extension {
-    private func getEventHub() -> EventHub {
+    private func getEventHub() -> EventHubProtocol {
         return EventHub.shared
     }
     
-    private func getExtensionContainer() -> ExtensionContainer? {
+    private func getExtensionContainer() -> ExtensionContainerProtocol? {
         return getEventHub().getExtensionContainer(Self.self)
     }
 }

@@ -17,7 +17,7 @@ public enum SharedStateStatus {
     case set, pending, none
 }
 
-class SharedState {
+public class SharedState {
 
     private let queue: DispatchQueue /// Allows multi-threaded access to shared state.  Reads are concurrent, Add/Updates act as barriers.
     private var head: Node?

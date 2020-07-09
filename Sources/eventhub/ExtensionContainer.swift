@@ -13,26 +13,26 @@ governing permissions and limitations under the License.
 import Foundation
 
 /// Contains an `Extension` and additional information related to the extension
-class ExtensionContainer {
+public class ExtensionContainer: ExtensionContainerProtocol {
     
     /// The extension held in this container
     var exten: Extension? = nil
     
     /// The `SharedState` associated with the extension
-    var sharedState: SharedState? = nil
+    public var sharedState: SharedState? = nil
     
-    var sharedStateName: String? = nil
+    public var sharedStateName: String? = nil
     
     /// The extension's dispatch queue
     let extensionQueue: DispatchQueue
     
     /// Operation Orderer queue of `Event` objects for this extension
-    let eventOrderer: OperationOrderer<Event>
+    public let eventOrderer: OperationOrderer<Event>
     
     /// Listeners array of `EventListeners` for this extension
     let eventListeners: ThreadSafeArray<EventListenerContainer>
         
-    init(_ type: Extension.Type, _ queue: DispatchQueue) {
+    public required init(_ type: Extension.Type, _ queue: DispatchQueue) {
         extensionQueue = queue
         eventOrderer = OperationOrderer<Event>()
         eventListeners = ThreadSafeArray<EventListenerContainer>()

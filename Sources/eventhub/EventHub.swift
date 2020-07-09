@@ -18,16 +18,19 @@ public typealias SharedStateResolver = ([String: Any]?) -> Void
 public typealias EventHandlerMapping = (event: Event, handler: (Event) -> (Bool))
 
 /// Responsible for delivering events to listeners and maintaining registered extension's lifecycle.
-final public class EventHub {
+final public class EventHub: EventHubProtocol {
+    
+    public var containerType: ExtensionContainerProtocol.Type = ExtensionContainer.self
+    
     private let eventHubQueue = DispatchQueue(label: "com.adobe.eventhub.queue")
-    private var registeredExtensions = ThreadSafeDictionary<String, ExtensionContainer>(identifier: "com.adobe.eventhub.registeredExtensions.queue")
+    private var registeredExtensions = ThreadSafeDictionary<String, ExtensionContainerProtocol>(identifier: "com.adobe.eventhub.registeredExtensions.queue")
     private let eventNumberMap = ThreadSafeDictionary<UUID, Int>(identifier: "com.adobe.eventhub.eventNumber.queue")
     private let responseEventListeners = ThreadSafeArray<EventListenerContainer>(identifier: "com.adobe.eventhub.response.queue")
     private var eventNumberCounter = AtomicCounter()
     private let eventQueue = OperationOrderer<Event>("EventHub")
 
     #if DEBUG
-    public internal(set) static var shared = EventHub()
+    public internal(set) static var shared: EventHubProtocol = EventHub()
     #else
     internal static let shared = EventHub()
     #endif
@@ -91,7 +94,7 @@ final public class EventHub {
             
             // Init the extension on a dedicated queue
             let extensionQueue = DispatchQueue(label: "com.adobe.eventhub.extension.\(type.typeName)")
-            let extensionContainer = ExtensionContainer(type, extensionQueue)
+            let extensionContainer = self.containerType.init(type, extensionQueue)
             self.registeredExtensions[type.typeName] = extensionContainer
             completion(nil)
         }
@@ -169,7 +172,7 @@ final public class EventHub {
     /// Retrieves the `ExtensionContainer` wrapper for the given extension type
     /// - Parameter type: The `Extension` class to find the `ExtensionContainer` for
     /// - Returns: The `ExtensionContainer` instance if the `Extension` type was found, nil otherwise
-    internal func getExtensionContainer(_ type: Extension.Type) -> ExtensionContainer? {
+    public func getExtensionContainer(_ type: Extension.Type) -> ExtensionContainerProtocol? {
         return registeredExtensions[type.typeName]
     }
 

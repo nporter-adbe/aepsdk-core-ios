@@ -66,6 +66,7 @@
 		2181948D2489FA40004F869A /* MobileVisitorAuthenticationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2181948C2489FA40004F869A /* MobileVisitorAuthenticationState.swift */; };
 		2181948F2489FC97004F869A /* CustomIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2181948E2489FC97004F869A /* CustomIdentity.swift */; };
 		218208ED247EED6D003D3591 /* ConfigurationFunctionalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218208EC247EED6D003D3591 /* ConfigurationFunctionalTests.swift */; };
+		2182778924B6E8AF005A468A /* EventHubProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2182778824B6E8AF005A468A /* EventHubProtocol.swift */; };
 		218CAD7524744A6D004DA1E8 /* NetworkServiceConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218CAD7424744A6D004DA1E8 /* NetworkServiceConstants.swift */; };
 		21A10255248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21A10254248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift */; };
 		21C754B324785E52007B8871 /* ThreadSafeDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C754B224785E52007B8871 /* ThreadSafeDictionaryTests.swift */; };
@@ -210,6 +211,7 @@
 		2181948C2489FA40004F869A /* MobileVisitorAuthenticationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileVisitorAuthenticationState.swift; sourceTree = "<group>"; };
 		2181948E2489FC97004F869A /* CustomIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomIdentity.swift; sourceTree = "<group>"; };
 		218208EC247EED6D003D3591 /* ConfigurationFunctionalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationFunctionalTests.swift; sourceTree = "<group>"; };
+		2182778824B6E8AF005A468A /* EventHubProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventHubProtocol.swift; sourceTree = "<group>"; };
 		218CAD7424744A6D004DA1E8 /* NetworkServiceConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkServiceConstants.swift; sourceTree = "<group>"; };
 		21A10254248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockConfigurationDownloaderNetworkService.swift; sourceTree = "<group>"; };
 		21C754B224785E52007B8871 /* ThreadSafeDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadSafeDictionaryTests.swift; sourceTree = "<group>"; };
@@ -466,6 +468,7 @@
 			isa = PBXGroup;
 			children = (
 				7629742B24294215005CCC73 /* SharedState.swift */,
+				2182778824B6E8AF005A468A /* EventHubProtocol.swift */,
 				213C8BC5242426A1009F780A /* EventHub.swift */,
 				21F235BC24325A6200C3E59A /* EventHubConstants.swift */,
 				213C8C0724297773009F780A /* EventHubError.swift */,
@@ -756,6 +759,7 @@
 				BBB2015A24B624B7000A3250 /* LogLevel.swift in Sources */,
 				785220D4245C921D00B46E90 /* NamedUserDefaultKeyValueService.swift in Sources */,
 				78A642572486C98E004B4E46 /* ThreadSafeArray.swift in Sources */,
+				2182778924B6E8AF005A468A /* EventHubProtocol.swift in Sources */,
 				BB1D756824A3E07F00269B45 /* DataQueue.swift in Sources */,
 				2157952024A2A9FE0012ED28 /* DiskCacheService.swift in Sources */,
 				BB55A81424B39D3800A23251 /* LoggingService.swift in Sources */,
