@@ -12,6 +12,10 @@ governing permissions and limitations under the License.
 import Foundation
 
 private extension String {
+    
+    /// Returns the first index of the character in this `String`
+    /// - Parameter char: character to be indexed
+    /// - Returns: The index of `char` in this `String`, otherwise nil
     func indexOf(char: Character) -> Int? {
         return firstIndex(of: char)?.utf16Offset(in: self)
     }
@@ -77,7 +81,10 @@ struct URLAppender {
             theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY, value: mid.midString)
         }
         
-        // TODO: Append aid and vid from Analytics
+        // aid
+        if let aid = analyticsSharedState[IdentityConstants.Analytics.ANALYTICS_ID] as? String {
+            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.VISITOR_PAYLOAD_ANALYTICS_ID_KEY, value: aid)
+        }
         
         // append org id
         if let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String {
@@ -85,9 +92,12 @@ struct URLAppender {
         }
         
         // encode adobe_mc string and append to the url
-        let urlFragment = "\(IdentityConstants.VISITOR_PAYLOAD_KEY)=\(URLEncoder.encode(value: theIdString))"
+        var urlFragment = "\(IdentityConstants.VISITOR_PAYLOAD_KEY)=\(URLEncoder.encode(value: theIdString))"
         
-        // TODO: If vid not empty encode and add to url
+        // If vid not empty encode and add to url
+        if let vid = analyticsSharedState[IdentityConstants.Analytics.VISITOR_IDENTIFIER] as? String, !vid.isEmpty {
+            urlFragment += "&\(IdentityConstants.ANALYTICS_PAYLOAD_KEY)=\(URLEncoder.encode(value: vid))"
+        }
         
         return urlFragment
     }

@@ -402,7 +402,6 @@
 				214B5224248ABCEB0034BF22 /* AEPIdentity+Identity.swift */,
 				21B0B61824B3A6C8002A1B1A /* Event+Identity.swift */,
 				21B0B61A24B3A7B7002A1B1A /* IdentityState.swift */,
-				21A15A6E24B664F5005D1688 /* URLAppender.swift */,
 				214B5226248ABD5D0034BF22 /* IdentityConstants.swift */,
 				2181948C2489FA40004F869A /* MobileVisitorAuthenticationState.swift */,
 				2181948E2489FC97004F869A /* CustomIdentity.swift */,
@@ -410,6 +409,7 @@
 				213F662F2492A808000184DE /* MID.swift */,
 				213F66332492C06B000184DE /* IdentityProperties.swift */,
 				21FBBB242491553100C66506 /* NetworkService+Identity.swift */,
+				21A15A6E24B664F5005D1688 /* URLAppender.swift */,
 				2137BA122498314000F01D04 /* URL+Identity.swift */,
 				2137BA102498311600F01D04 /* URLQueryItem+Identity.swift */,
 			);
