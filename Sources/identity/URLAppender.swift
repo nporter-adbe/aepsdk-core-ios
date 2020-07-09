@@ -15,9 +15,9 @@ private extension String {
     
     /// Returns the first index of the character in this `String`
     /// - Parameter char: character to be indexed
-    /// - Returns: The index of `char` in this `String`, otherwise nil
-    func indexOf(char: Character) -> Int? {
-        return firstIndex(of: char)?.utf16Offset(in: self)
+    /// - Returns: The index of `char` in this `String`, otherwise -1
+    func indexOf(char: Character) -> Int {
+        return firstIndex(of: char)?.utf16Offset(in: self) ?? -1
     }
 }
 
@@ -37,32 +37,25 @@ struct URLAppender {
         }
         
         var modifiedUrl = baseUrl
-        if var idString = generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: analyticsSharedState, identityProperties: identityProperties) {
-            // add separator based on if url contains query parameters
-            let queryIndex = modifiedUrl.indexOf(char: "?")
-            var insertIndex = modifiedUrl.count
-            
-            // account for anchors in url
-            let anchorIndex = modifiedUrl.indexOf(char: "#")
-            if let anchorIndex = anchorIndex {
-                insertIndex = anchorIndex > 0 ? anchorIndex : modifiedUrl.count
-            }
-            
-            // check for case where URL has no query but the fragment (anchor) contains a '?' character
-            let hasQueryAndAnchor = anchorIndex != nil && queryIndex != nil
-            let isQueryAfterAnchor = hasQueryAndAnchor && (anchorIndex ?? -1) > 0 && (anchorIndex ?? -1) < (queryIndex ?? -1)
-            
-            // insert query delimiter, account for fragment which contains '?' character
-            if let queryIndex = queryIndex, !isQueryAfterAnchor {
-                if queryIndex != modifiedUrl.count - 1 {
-                    idString.insert("&", at: idString.startIndex)
-                }
-            } else {
-                idString.insert("?", at: idString.startIndex)
-            }
-            
-            modifiedUrl.insert(contentsOf: idString, at: modifiedUrl.index(modifiedUrl.startIndex, offsetBy: insertIndex))
+        var idString = generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: analyticsSharedState, identityProperties: identityProperties)
+        // add separator based on if url contains query parameters
+        let queryIndex = modifiedUrl.indexOf(char: "?")
+        
+        // account for anchors in url
+        let anchorIndex = modifiedUrl.indexOf(char: "#")
+        let insertIndex = anchorIndex > 0 ? anchorIndex : modifiedUrl.count
+        
+        // check for case where URL has no query but the fragment (anchor) contains a '?' character
+        let isQueryAfterAnchor = anchorIndex > 0 && anchorIndex < queryIndex
+        
+        // insert query delimiter, account for fragment which contains '?' character
+        if queryIndex > 0 && queryIndex != modifiedUrl.count - 1 && !isQueryAfterAnchor {
+            idString.insert("&", at: idString.startIndex)
+        } else if queryIndex < 0 || isQueryAfterAnchor {
+            idString.insert("?", at: idString.startIndex)
         }
+        
+        modifiedUrl.insert(contentsOf: idString, at: modifiedUrl.index(modifiedUrl.startIndex, offsetBy: insertIndex))
         
         return modifiedUrl
     }
@@ -73,7 +66,7 @@ struct URLAppender {
     ///   - analyticsSharedState: analytics shared state corresponding to the event to be processed
     ///   - identityProperties: the current identity properties
     /// - Returns a string formatted with the visitor id payload
-    static func generateVisitorIdPayload(configSharedState: [String: Any], analyticsSharedState: [String: Any], identityProperties: IdentityProperties) -> String? {
+    static func generateVisitorIdPayload(configSharedState: [String: Any], analyticsSharedState: [String: Any], identityProperties: IdentityProperties) -> String {
         // append timestamp
         var theIdString = appendParameterToVisitorIdString(original: "", key: IdentityConstants.VISITOR_TIMESTAMP_KEY, value: String(Date().timeIntervalSince1970))
         // append mid

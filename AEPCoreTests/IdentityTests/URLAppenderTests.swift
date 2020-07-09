@@ -126,7 +126,6 @@ class URLAppenderTests: XCTestCase {
         XCTAssertEqual(expected, result)
     }
 
-    
     /// Tests that the VID is properly encoded into the visitor id payload
     func testGenerateVisitorIdPayloadEncodedVID() {
         // setup
