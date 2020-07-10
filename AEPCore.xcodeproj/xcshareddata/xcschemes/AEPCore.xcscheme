@@ -41,6 +41,12 @@
                <Test
                   Identifier = "AEPCoreLifecycleTests">
                </Test>
+               <Test
+                  Identifier = "AEPCoreTests/testDispatchEventWithResponseCallbackSimple()">
+               </Test>
+               <Test
+                  Identifier = "IdentityStateTests/testSyncIdentifiersHappyPushID()">
+               </Test>
             </SkippedTests>
          </TestableReference>
       </Testables>
