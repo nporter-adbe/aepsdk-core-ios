@@ -12,7 +12,7 @@
 import Foundation
 
 /// A thread safe reference type array
-final class ThreadSafeArray<T> {
+public final class ThreadSafeArray<T> {
     private var array: [T] = []
     private var queue: DispatchQueue
     

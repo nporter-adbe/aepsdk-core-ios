@@ -28,10 +28,7 @@ public class PersistentHitQueue: HitQueuing {
     @discardableResult
     public func queue(entity: DataEntity) -> Bool {
         let result = dataQueue.add(dataEntity: entity)
-        if !suspended {
-            processNextHit()
-        }
-        
+        processNextHit()
         return result
     }
 
@@ -50,7 +47,7 @@ public class PersistentHitQueue: HitQueuing {
     
     /// A recursive function for processing hits, it will continue processing all the hits
     private func processNextHit() {
-        guard suspended else { return  }
+        guard !suspended else { return  }
         guard let hit = dataQueue.peek() else { return } // nothing let in the queue, stop processing
         
         // Use a dispatch queue so we can wait for the hit to finish processing asynchronous before moving to the next hit
