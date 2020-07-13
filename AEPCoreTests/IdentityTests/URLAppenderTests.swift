@@ -30,7 +30,7 @@ private extension String {
 
 class URLAppenderTests: XCTestCase {
     // MARK: appendVisitorInfo(...) tests
-    
+
     /// When base url is empty the result should be empty
     func testAppendVisitorInfoEmptyBaseUrl() {
         // setup
@@ -73,7 +73,7 @@ class URLAppenderTests: XCTestCase {
     }
 
     // MARK: generateVisitorIdPayload(...) tests
-    
+
     /// Tests that when the vid is not provided that we do not append the url parameter for the vid
     func testGenerateVisitorIdPayloadNoVid() {
         // setup
@@ -87,7 +87,7 @@ class URLAppenderTests: XCTestCase {
         var result = URLAppender.generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: analyticsSharedState, identityProperties: props)
 
         // verify that the url starts with Visitor Payload key
-        XCTAssertTrue(result.hasPrefix(IdentityConstants.VISITOR_PAYLOAD_KEY))
+        XCTAssertTrue(result.hasPrefix(IdentityConstants.URLKeys.VISITOR_PAYLOAD_KEY))
 
         // verify timestamp parameter
         let tsIndex = result.indexOf(char: "=")!
@@ -113,7 +113,7 @@ class URLAppenderTests: XCTestCase {
         var result = URLAppender.generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: analyticsSharedState, identityProperties: props)
 
         // verify that the url starts with Visitor Payload key
-        XCTAssertTrue(result.hasPrefix(IdentityConstants.VISITOR_PAYLOAD_KEY))
+        XCTAssertTrue(result.hasPrefix(IdentityConstants.URLKeys.VISITOR_PAYLOAD_KEY))
 
         // verify timestamp parameter
         let tsIndex = result.indexOf(char: "=")!
@@ -140,7 +140,7 @@ class URLAppenderTests: XCTestCase {
         var result = URLAppender.generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: analyticsSharedState, identityProperties: props)
 
         // verify that the url starts with Visitor Payload key
-        XCTAssertTrue(result.hasPrefix(IdentityConstants.VISITOR_PAYLOAD_KEY))
+        XCTAssertTrue(result.hasPrefix(IdentityConstants.URLKeys.VISITOR_PAYLOAD_KEY))
 
         // verify timestamp parameter
         let tsIndex = result.indexOf(char: "=")!
@@ -153,41 +153,4 @@ class URLAppenderTests: XCTestCase {
         XCTAssertEqual(expected, result)
     }
 
-    // MARK: appendParameterToVisitorIdString(...) tests
-    
-    /// Tests that the key value are properly formatter when the original string is empty
-    func testAppendParameterToVisitorIdStringShouldHandleEmpty() {
-        // test
-        let result = URLAppender.appendParameterToVisitorIdString(original: "", key: "key1", value: "val1")
-
-        // verify
-        XCTAssertEqual("key1=val1", result)
-    }
-
-    /// Tests that the value is not appended when the key is empty
-    func testAppendParameterToVisitorIdStringReturnsOriginalIfKeyIsEmpty() {
-        // test
-        let result = URLAppender.appendParameterToVisitorIdString(original: "testOriginal", key: "", value: "val1")
-
-        // verify
-        XCTAssertEqual("testOriginal", result)
-    }
-
-    /// Tests that the key is not appended if the value is empty
-    func testAppendParameterToVisitorIdStringReturnsOriginalIfValueIsEmpty() {
-        // test
-        let result = URLAppender.appendParameterToVisitorIdString(original: "testOriginal", key: "key1", value: "")
-
-        // verify
-        XCTAssertEqual("testOriginal", result)
-    }
-
-    /// Tests that the key value is properly appended when the original string is not empty
-    func testAppendParameterToVisitorIdStringHappy() {
-        // test
-        let result = URLAppender.appendParameterToVisitorIdString(original: "hello=world", key: "key1", value: "val1")
-
-        // verify
-        XCTAssertEqual("hello=world|key1=val1", result)
-    }
 }

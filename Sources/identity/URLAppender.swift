@@ -36,25 +36,25 @@ struct URLAppender {
             return baseUrl
         }
 
-        var modifiedUrl = baseUrl
         var idString = generateVisitorIdPayload(configSharedState: configSharedState, analyticsSharedState: analyticsSharedState, identityProperties: identityProperties)
         // add separator based on if url contains query parameters
-        let queryIndex = modifiedUrl.indexOf(char: "?")
+        let queryIndex = baseUrl.indexOf(char: "?")
 
         // account for anchors in url
-        let anchorIndex = modifiedUrl.indexOf(char: "#")
-        let insertIndex = anchorIndex > 0 ? anchorIndex : modifiedUrl.count
+        let anchorIndex = baseUrl.indexOf(char: "#")
+        let insertIndex = anchorIndex > 0 ? anchorIndex : baseUrl.count
 
         // check for case where URL has no query but the fragment (anchor) contains a '?' character
         let isQueryAfterAnchor = anchorIndex > 0 && anchorIndex < queryIndex
 
         // insert query delimiter, account for fragment which contains '?' character
-        if queryIndex > 0 && queryIndex != modifiedUrl.count - 1 && !isQueryAfterAnchor {
+        if queryIndex > 0 && queryIndex != baseUrl.count - 1 && !isQueryAfterAnchor {
             idString.insert("&", at: idString.startIndex)
         } else if queryIndex < 0 || isQueryAfterAnchor {
             idString.insert("?", at: idString.startIndex)
         }
-
+        
+        var modifiedUrl = baseUrl
         modifiedUrl.insert(contentsOf: idString, at: modifiedUrl.index(modifiedUrl.startIndex, offsetBy: insertIndex))
 
         return modifiedUrl
@@ -68,28 +68,28 @@ struct URLAppender {
     /// - Returns a string formatted with the visitor id payload
     static func generateVisitorIdPayload(configSharedState: [String: Any], analyticsSharedState: [String: Any], identityProperties: IdentityProperties) -> String {
         // append timestamp
-        var theIdString = appendParameterToVisitorIdString(original: "", key: IdentityConstants.VISITOR_TIMESTAMP_KEY, value: String(Date().timeIntervalSince1970))
+        var theIdString = appendParameterToVisitorIdString(original: "", key: IdentityConstants.URLKeys.VISITOR_TIMESTAMP_KEY, value: String(Date().timeIntervalSince1970))
         // append mid
         if let mid = identityProperties.mid {
-            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY, value: mid.midString)
+            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.URLKeys.VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY, value: mid.midString)
         }
 
         // aid
         if let aid = analyticsSharedState[IdentityConstants.Analytics.ANALYTICS_ID] as? String {
-            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.VISITOR_PAYLOAD_ANALYTICS_ID_KEY, value: aid)
+            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.URLKeys.VISITOR_PAYLOAD_ANALYTICS_ID_KEY, value: aid)
         }
 
         // append org id
         if let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String {
-            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.VISITOR_PAYLOAD_MARKETING_CLOUD_ORG_ID, value: orgId)
+            theIdString = appendParameterToVisitorIdString(original: theIdString, key: IdentityConstants.URLKeys.VISITOR_PAYLOAD_MARKETING_CLOUD_ORG_ID, value: orgId)
         }
 
         // encode adobe_mc string and append to the url
-        var urlFragment = "\(IdentityConstants.VISITOR_PAYLOAD_KEY)=\(URLEncoder.encode(value: theIdString))"
+        var urlFragment = "\(IdentityConstants.URLKeys.VISITOR_PAYLOAD_KEY)=\(URLEncoder.encode(value: theIdString))"
 
         // If vid not empty encode and add to url
         if let vid = analyticsSharedState[IdentityConstants.Analytics.VISITOR_IDENTIFIER] as? String, !vid.isEmpty {
-            urlFragment += "&\(IdentityConstants.ANALYTICS_PAYLOAD_KEY)=\(URLEncoder.encode(value: vid))"
+            urlFragment += "&\(IdentityConstants.URLKeys.ANALYTICS_PAYLOAD_KEY)=\(URLEncoder.encode(value: vid))"
         }
 
         return urlFragment
@@ -101,7 +101,7 @@ struct URLAppender {
     ///   - key: key to be appended to the url, expected to be non-empty
     ///   - value: value to be appended to the url, expected to be non-empty
     /// - Returns: `original` with `key` and `value` properly appended
-    static func appendParameterToVisitorIdString(original: String, key: String, value: String) -> String {
+    private static func appendParameterToVisitorIdString(original: String, key: String, value: String) -> String {
         if key.isEmpty || value.isEmpty {
             return original
         }
