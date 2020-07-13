@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import Foundation
 
 /// Provides functionality for asynchronous processing of hits in a synchronous manner while providing the ability to retry hits
-public class HitQueue: HitQueuing {
+public class PersistentHitQueue: HitQueuing {
     let dataQueue: DataQueue
     weak public var delegate: HitProcessable?
     
