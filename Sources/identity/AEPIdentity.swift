@@ -52,6 +52,7 @@ class AEPIdentity: Extension {
         let analyticsSharedState = getSharedState(extensionName: "com.adobe.module.analytics", event: event)?.value ?? [:]
         let urlVariables = URLAppender.generateVisitorIdPayload(configSharedState: configurationSharedState, analyticsSharedState: analyticsSharedState, identityProperties: state.identityProperties)
         
+        // dispatch identity response event with url variables
         let responseEvent = event.createResponseEvent(name: "Identity URL Variables", type: .identity, source: .responseIdentity, data: [IdentityConstants.EventDataKeys.URL_VARIABLES: urlVariables])
         dispatch(event: responseEvent)
     }
@@ -59,6 +60,8 @@ class AEPIdentity: Extension {
     private func processIdentifiersRequest(event: Event) {
         let eventData = state.identityProperties.toEventData()
         let responseEvent = event.createResponseEvent(name: "Identity Response Content", type: .identity, source: .responseIdentity, data: eventData)
+        
+        // dispatch identity response event with shared state data
         dispatch(event: responseEvent)
     }
     
