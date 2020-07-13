@@ -411,7 +411,6 @@
 				2137BA122498314000F01D04 /* URL+Identity.swift */,
 				2137BA102498311600F01D04 /* URLQueryItem+Identity.swift */,
 				2182778C24B792F9005A468A /* URLAppender.swift */,
-				2182779424B7B180005A468A /* HitQueue.swift */,
 			);
 			name = identity;
 			path = Sources/identity;
@@ -530,6 +529,7 @@
 				21599655243E4EEB00E202B1 /* AnyCodable.swift */,
 				21315BB924579C4A00D1B254 /* AtomicCounter.swift */,
 				78A642562486C98E004B4E46 /* ThreadSafeArray.swift */,
+				2182779424B7B180005A468A /* HitQueue.swift */,
 			);
 			name = utility;
 			path = Sources/utility;
