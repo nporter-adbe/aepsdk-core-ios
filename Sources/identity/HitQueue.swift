@@ -1,101 +1,64 @@
-//
-//  HitQueue.swift
-//  AEPCoreTests
-//
-//  Created by Nick Porter on 7/9/20.
-//  Copyright © 2020 Adobe. All rights reserved.
-//
+/*
+Copyright 2020 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
 
 import Foundation
 
-struct IdentityHit: Codable {
-    let url: URL
-}
-
 class HitQueue {
+    // A closure which is invoked when a `DataEntity` and a `Bool`, the passed boolean value should indicate if the hit should be retried (false), or if processing was successful (true)
     typealias HitProcessor = (DataEntity, (Bool) -> ()) -> ()
     
     let dataQueue: DataQueue
+    
+    /// A closure to be invoked with the hit and a boolean value indicating failure or success
     let processor: HitProcessor
-    var operationOrderer = OperationOrderer<DataEntity>("HitQueue")
     private var suspended = true
-    private var networkService: NetworkService {
-        return AEPServiceProvider.shared.networkService
-    }
+    private var processingHit = false // modified by two threads, invesitgate
     
     init(dataQueue: DataQueue, processor: @escaping HitProcessor) {
         self.dataQueue = dataQueue
         self.processor = processor
-        operationOrderer.setHandler(processNext)
-        operationOrderer.stop()
     }
     
-    func bringOnline() {
-        suspended = false
-        if let firstHit = dataQueue.peek() {
-            operationOrderer.add(firstHit)
-        }
-    }
-    
-    func suspend() {
-        suspended = true
-        operationOrderer.stop()
-    }
-    
-    func clear() {
-        let _ = dataQueue.clear()
-        operationOrderer = OperationOrderer<DataEntity>("HitQueue")
-    }
-    
+    @discardableResult
     func queue(entity: DataEntity, event: Event, configSharedState: [String: Any]) -> Bool {
         return dataQueue.add(dataEntity: entity)
     }
     
-    private func processNext(_ hitId: DataEntity) -> Bool {
-        guard suspended else { return false }
-        
-        guard let dataEntity = dataQueue.peek() else { return true }
-        
-        // TODO: process hit
-        
-        self.processor(dataEntity, { result in
-            
-        })
-        
-//        let networkRequest = NetworkRequest(url: hit.url)
-//        networkService.connectAsync(networkRequest: networkRequest) { (connection) in
-//            if connection.responseCode == 200 {
-//                // handle network response
-////                return true
-//            } else if NetworkServiceConstants.RECOVERABLE_RESPONSE_CODES.contains(connection.responseCode ?? -1) {
-//                // retry
-//
-////                return false
-//            } else {
-//                // unrecoverable error
-//            }
-//        }
-//
-//        // when done processing this hit add the next to the operation orderer
-//        let _ = dataQueue.remove()
-//        if let nextHit = dataQueue.peek() {
-//            operationOrderer.add(nextHit)
-//        }
-        
-        return true
+    func bringOnline() {
+        suspended = false
+        processNextHit()
     }
     
-    func updatePrivacyStatus(privacyStatus: PrivacyStatus) {
-        switch privacyStatus {
-        case .optedIn:
-            bringOnline()
-        case .optedOut:
-            suspended = true
-            operationOrderer.stop()
-            let _ = dataQueue.remove()
-        case .unknown:
-            suspended = true
-            operationOrderer.stop()
-        }
+    func suspend() {
+        suspended = true
+    }
+    
+    func clear() {
+        let _ = dataQueue.clear()
+    }
+    
+    private func processNextHit() {
+        guard suspended else { return  }
+        guard !processingHit else { return } // ensure we are not currently processing a hit
+        guard let hit = dataQueue.peek() else { return } // nothing let in the queue, stop processing
+        processingHit = true
+        
+        self.processor(hit, { result in
+            processingHit = false
+            if result {
+                // successful processing of hit, remove it from the queue, if failed leave in queue to be retried
+                let _ = dataQueue.remove()
+            }
+            processNextHit()
+        })
+        
     }
 }
