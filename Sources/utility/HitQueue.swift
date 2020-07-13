@@ -11,37 +11,10 @@ governing permissions and limitations under the License.
 
 import Foundation
 
-/// Defines a type which can process a hit
-protocol Processable: class {
-    
-    /// Function that is invoked with a `DataEntity` and provides functionality for processing the hit
-    /// - Parameters:
-    ///   - entity: The `DataEntity` to be processed
-    ///   - completion: a closure to be invoked with `true` if processing was successful and should not be retried, false if processing the hit should be retried
-    func processHit(entity: DataEntity, completion: (Bool) -> ())
-}
-
-protocol HitQueuing {
-    /// Queues a `DataEntity` to be processed
-    /// - Parameters:
-    ///   - entity: the entity to be processed
-    @discardableResult
-    func queue(entity: DataEntity) -> Bool
-    
-    /// Puts the queue in non-suspended state and begins processing hits
-    func beginProcessing()
-    
-    /// Puts the queue in a suspended state and discontinues hit processing
-    func suspend()
-    
-    /// Removes all the persisted hits from the queue
-    func clear()
-}
-
 /// Provides functionality for asynchronous processing of hits in a synchronous manner while providing the ability to retry hits
-class HitQueue: HitQueuing {
+public class HitQueue: HitQueuing {
     let dataQueue: DataQueue
-    weak var delegate: Processable?
+    weak public var delegate: HitProcessable?
     
     private var suspended = true
     private let queue = DispatchQueue(label: "com.adobe.mobile.hitqueue")
@@ -53,7 +26,7 @@ class HitQueue: HitQueuing {
     }
     
     @discardableResult
-    func queue(entity: DataEntity) -> Bool {
+    public func queue(entity: DataEntity) -> Bool {
         let result = dataQueue.add(dataEntity: entity)
         if !suspended {
             processNextHit()
@@ -62,16 +35,16 @@ class HitQueue: HitQueuing {
         return result
     }
 
-    func beginProcessing() {
+    public func beginProcessing() {
         suspended = false
         processNextHit()
     }
 
-    func suspend() {
+    public func suspend() {
         suspended = true
     }
 
-    func clear() {
+    public func clear() {
         let _ = dataQueue.clear()
     }
     
