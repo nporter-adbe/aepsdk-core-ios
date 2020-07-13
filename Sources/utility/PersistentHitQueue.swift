@@ -33,12 +33,12 @@ public class PersistentHitQueue: HitQueuing {
     }
 
     public func beginProcessing() {
-        suspended = false
+        queue.async { self.suspended = false }
         processNextHit()
     }
 
     public func suspend() {
-        suspended = true
+        queue.async { self.suspended = true }
     }
 
     public func clear() {
@@ -47,24 +47,18 @@ public class PersistentHitQueue: HitQueuing {
     
     /// A recursive function for processing hits, it will continue processing all the hits
     private func processNextHit() {
-        guard !suspended else { return  }
-        guard let hit = dataQueue.peek() else { return } // nothing let in the queue, stop processing
-        
-        // Use a dispatch queue so we can wait for the hit to finish processing asynchronous before moving to the next hit
-        let group = DispatchGroup()
-        group.enter()
-        
-        delegate?.processHit(entity: hit, completion: { [weak self] (success) in
-            if success {
-                // successful processing of hit, remove it from the queue, if failed leave in queue to be retried
-                let _ = self?.dataQueue.remove()
-            }
+        queue.async {
+            guard !self.suspended else { return }
+            guard let hit = self.dataQueue.peek() else { return } // nothing let in the queue, stop processing
             
-            group.leave()
-        })
-        
-        group.notify(queue: queue) {
-            self.processNextHit()
+            self.delegate?.processHit(entity: hit, completion: { [weak self] (success) in
+                if success {
+                    // successful processing of hit, remove it from the queue, if failed leave in queue to be retried
+                    let _ = self?.dataQueue.remove()
+                }
+                
+                self?.processNextHit()
+            })
         }
     }
 }

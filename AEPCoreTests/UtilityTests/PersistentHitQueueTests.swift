@@ -65,6 +65,7 @@ class PersistentHitQueueTests: XCTestCase {
         // test
         let result = hitQueue.queue(entity: entity)
         hitQueue.beginProcessing()
+        sleep(1)
         
         // verify
         XCTAssertNil(hitQueue.dataQueue.peek()) // hit should no longer be in the queue as its been processed
