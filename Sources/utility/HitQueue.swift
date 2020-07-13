@@ -11,25 +11,29 @@ governing permissions and limitations under the License.
 
 import Foundation
 
+protocol HitProcessor: class {
+    func processHit(entity: DataEntity, completion: (Bool) -> ())
+}
+
 class HitQueue {
-    // A closure which is invoked when a `DataEntity` and a `Bool`, the passed boolean value should indicate if the hit should be retried (false), or if processing was successful (true)
-    typealias HitProcessor = (DataEntity, (Bool) -> ()) -> ()
-    
     let dataQueue: DataQueue
+    weak var delegate: HitProcessor?
     
-    /// A closure to be invoked with the hit and a boolean value indicating failure or success
-    let processor: HitProcessor
     private var suspended = true
     private var processingHit = false // modified by two threads, invesitgate
     
-    init(dataQueue: DataQueue, processor: @escaping HitProcessor) {
+    init(dataQueue: DataQueue) {
         self.dataQueue = dataQueue
-        self.processor = processor
     }
     
     @discardableResult
     func queue(entity: DataEntity, event: Event, configSharedState: [String: Any]) -> Bool {
-        return dataQueue.add(dataEntity: entity)
+        let result = dataQueue.add(dataEntity: entity)
+        if !suspended {
+            processNextHit()
+        }
+        
+        return result
     }
     
     func bringOnline() {
@@ -51,14 +55,14 @@ class HitQueue {
         guard let hit = dataQueue.peek() else { return } // nothing let in the queue, stop processing
         processingHit = true
         
-        self.processor(hit, { result in
+        delegate?.processHit(entity: hit, completion: { (success) in
             processingHit = false
-            if result {
+            if success {
                 // successful processing of hit, remove it from the queue, if failed leave in queue to be retried
                 let _ = dataQueue.remove()
             }
+            
             processNextHit()
         })
-        
     }
 }
