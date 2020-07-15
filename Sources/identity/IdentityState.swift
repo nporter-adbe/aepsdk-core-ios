@@ -13,21 +13,21 @@ import Foundation
 
 /// Manages the business logic of the Identity extension
 struct IdentityState {
-    
+
     private(set) var identityProperties: IdentityProperties
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
     private var lastValidConfig: [String: Any] = [:]
     #endif
-    
+
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
     init(identityProperties: IdentityProperties) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
     }
-    
+
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
     /// - Parameters:
     ///   - event: event corresponding to sync identifiers call or containing a new ADID value.
@@ -42,10 +42,10 @@ struct IdentityState {
             // can't process this event, wait for a valid config and retry later
             return false
         }
-        
+
         return true
     }
-    
+
     /// Will queue a sync identifiers hit if there are any new valid identifiers to be synced (non null/empty id_type and id values),
     /// Updates the persistence values for the identifiers and ad id
     /// Assumes a valid config is in `lastValidConfig` from calling `readyForSyncIdentifiers`
@@ -58,31 +58,31 @@ struct IdentityState {
             // TODO: Add log
             return nil
         }
-        
+
         // Early exit if privacy is opt-out
         if lastValidConfig[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? .unknown == .optedOut {
             // TODO: Add log
             return nil
         }
-        
+
         // TODO: Save push ID AMSDK-10262
-        
+
         // generate customer ids
         let authState = event.authenticationState
         var customerIds = event.identifiers?.map({CustomIdentity(origin: IdentityConstants.VISITOR_ID_PARAMETER_KEY_CUSTOMER, type: $0.key, identifier: $0.value, authenticationState: authState)}) ?? []
-        
+
         // update adid if changed and extract the new adid value as VisitorId to be synced
         if let adId = event.adId, shouldUpdateAdId(newAdID: adId.identifier ?? "") {
             // check if changed, update
             identityProperties.advertisingIdentifier = adId.identifier
             customerIds.append(adId)
         }
-        
+
         // merge new identifiers with the existing ones and remove any VisitorIds with empty id values
         // empty adid is also removed from the customer_ids_ list by merging with the new ids then filtering out any empty ids
         identityProperties.mergeAndCleanCustomerIds(customerIds)
         customerIds.removeAll(where: {$0.identifier?.isEmpty ?? true}) // clean all identifiers by removing all that have a nil or empty identifier
-        
+
         // valid config: check if there's a need to sync. Don't if we're already up to date.
         if shouldSync(customerIds: customerIds, dpids: event.dpids, forceSync: event.forceSync, currentEventValidConfig: lastValidConfig) {
             // TODO: AMSDK-10261 queue in DB
@@ -90,14 +90,14 @@ struct IdentityState {
         } else {
             // TODO: Log error
         }
-        
+
         // save properties
         identityProperties.saveToPersistence()
-        
+
         // return event data to be used in identity shared state
         return identityProperties.toEventData()
     }
-    
+
     /// Verifies if a sync network call is required. This method returns true if there is at least one identifier to be synced,
     /// at least one dpid, if force sync is true (bootup identity sync call) or if the
     /// last sync was more than `ttl_` seconds ago. Also, in order for a sync call to happen, the provided configuration should be
@@ -111,26 +111,26 @@ struct IdentityState {
     private mutating func shouldSync(customerIds: [CustomIdentity]?, dpids: [String: String]?, forceSync: Bool, currentEventValidConfig: [String: Any]) -> Bool {
         var syncForProps = true
         var syncForIds = true
-        
+
         // check config
         if !canSyncForCurrentConfiguration(config: currentEventValidConfig) {
             // TOOD: Add log
             syncForProps = false
         }
-        
+
         let needResync = Date().timeIntervalSince1970 - (identityProperties.lastSync?.timeIntervalSince1970 ?? 0) > identityProperties.ttl || forceSync
         let hasIds = !(customerIds?.isEmpty ?? true)
         let hasDpids = !(dpids?.isEmpty ?? true)
-        
+
         if identityProperties.mid != nil && !hasIds && !hasDpids && !needResync {
             syncForIds = false
         } else if identityProperties.mid == nil {
             identityProperties.mid = MID()
         }
-        
+
         return syncForIds && syncForProps
     }
-    
+
     /// Inspects the current configuration to determine if a sync can be made, this is determined by if a valid org id is present and if the privacy is not set to opted-out
     /// - Parameter config: The current configuration
     /// - Returns: True if a sync can be made with the current configuration, false otherwise
@@ -139,7 +139,7 @@ struct IdentityState {
         let privacyStatus = config[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? .unknown
         return !orgId.isEmpty && privacyStatus != .optedOut
     }
-    
+
     /// Determines if we should update the ad id with `newAdID`
     /// - Parameter newAdID: the new ad id
     /// - Returns: True if we should update the ad id, false otherwise
