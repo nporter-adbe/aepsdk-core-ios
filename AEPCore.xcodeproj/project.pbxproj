@@ -25,6 +25,9 @@
 		213C8BD72428822A009F780A /* EventListenerContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213C8BD62428822A009F780A /* EventListenerContainer.swift */; };
 		213C8C0824297773009F780A /* EventHubError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213C8C0724297773009F780A /* EventHubError.swift */; };
 		213E87B92433E9BD00033447 /* SharedStateTestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213E87B82433E9BD00033447 /* SharedStateTestHelper.swift */; };
+		213F638224BFE1DA006931EB /* IdentityHitProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F638124BFE1DA006931EB /* IdentityHitProcessor.swift */; };
+		213F638424C004C2006931EB /* IdentityRequestResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F638324C004C2006931EB /* IdentityRequestResponse.swift */; };
+		213F638624C004E7006931EB /* IdentityHit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F638524C004E7006931EB /* IdentityHit.swift */; };
 		213F662E2492A36A000184DE /* AEPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F662D2492A36A000184DE /* AEPError.swift */; };
 		213F66302492A808000184DE /* MID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F662F2492A808000184DE /* MID.swift */; };
 		213F66322492A8B9000184DE /* MIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F66312492A8B9000184DE /* MIDTests.swift */; };
@@ -193,6 +196,9 @@
 		213C8BD62428822A009F780A /* EventListenerContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListenerContainer.swift; sourceTree = "<group>"; };
 		213C8C0724297773009F780A /* EventHubError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventHubError.swift; sourceTree = "<group>"; };
 		213E87B82433E9BD00033447 /* SharedStateTestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedStateTestHelper.swift; sourceTree = "<group>"; };
+		213F638124BFE1DA006931EB /* IdentityHitProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityHitProcessor.swift; sourceTree = "<group>"; };
+		213F638324C004C2006931EB /* IdentityRequestResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityRequestResponse.swift; sourceTree = "<group>"; };
+		213F638524C004E7006931EB /* IdentityHit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityHit.swift; sourceTree = "<group>"; };
 		213F662D2492A36A000184DE /* AEPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AEPError.swift; path = Sources/AEPError.swift; sourceTree = "<group>"; };
 		213F662F2492A808000184DE /* MID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MID.swift; sourceTree = "<group>"; };
 		213F66312492A8B9000184DE /* MIDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDTests.swift; sourceTree = "<group>"; };
@@ -472,6 +478,9 @@
 				2137BA122498314000F01D04 /* URL+Identity.swift */,
 				2137BA102498311600F01D04 /* URLQueryItem+Identity.swift */,
 				2182778C24B792F9005A468A /* URLAppender.swift */,
+				213F638124BFE1DA006931EB /* IdentityHitProcessor.swift */,
+				213F638524C004E7006931EB /* IdentityHit.swift */,
+				213F638324C004C2006931EB /* IdentityRequestResponse.swift */,
 			);
 			name = identity;
 			path = Sources/identity;
@@ -858,15 +867,16 @@
 				21315BBA24579C4A00D1B254 /* AtomicCounter.swift in Sources */,
 				213C8BD72428822A009F780A /* EventListenerContainer.swift in Sources */,
 				214B5225248ABCEB0034BF22 /* AEPIdentity+Identity.swift in Sources */,
+				213F638424C004C2006931EB /* IdentityRequestResponse.swift in Sources */,
 				BBB2015A24B624B7000A3250 /* LogLevel.swift in Sources */,
 				785220D4245C921D00B46E90 /* NamedUserDefaultKeyValueService.swift in Sources */,
 				78A642572486C98E004B4E46 /* ThreadSafeArray.swift in Sources */,
 				BB1D756824A3E07F00269B45 /* DataQueue.swift in Sources */,
+				213F638624C004E7006931EB /* IdentityHit.swift in Sources */,
 				2157EDBB24BCED01008F6A8B /* HitProcessable.swift in Sources */,
 				2157952024A2A9FE0012ED28 /* DiskCacheService.swift in Sources */,
 				BB55A81424B39D3800A23251 /* LoggingService.swift in Sources */,
 				3FC9665324B3E4EE0096F572 /* ExtensionRuntime.swift in Sources */,
-				2179F1842464901A0004A7C0 /* AEPLifecycle.swift in Sources */,
 				2157EDBD24BCED11008F6A8B /* HitQueuing.swift in Sources */,
 				BB1D756D24A3E07F00269B45 /* SQLiteWrapper.swift in Sources */,
 				216CD93524BE2D1A00C4E060 /* Event+Lifecycle.swift in Sources */,
@@ -929,6 +939,7 @@
 				21315BB524575ED200D1B254 /* AEPCore.swift in Sources */,
 				2157952424A3D9E30012ED28 /* CacheExpiry.swift in Sources */,
 				21F02C362477067900D25528 /* LaunchIDManager.swift in Sources */,
+				213F638224BFE1DA006931EB /* IdentityHitProcessor.swift in Sources */,
 				21F235BD24325A6200C3E59A /* EventHubConstants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -942,7 +953,6 @@
 				215AA6212465E02C00CEB4F4 /* ConfigurationDownloaderTests.swift in Sources */,
 				D4000F2C2458E8350052C536 /* MockNetworkServiceOverrider.swift in Sources */,
 				3F03976524BE43650019F095 /* TestableExtensionRuntime.swift in Sources */,
-				2181730324A51BD20053439A /* MockDataStore.swift in Sources */,
 				2157EDC124BCED63008F6A8B /* MockDataQueue.swift in Sources */,
 				21C754B324785E52007B8871 /* ThreadSafeDictionaryTests.swift in Sources */,
 				BB1D757C24A3E09100269B45 /* SQLiteWrapperTests.swift in Sources */,

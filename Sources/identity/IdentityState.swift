@@ -14,7 +14,9 @@ import Foundation
 /// Manages the business logic of the Identity extension
 struct IdentityState {
     
+    private let hitProcessor = IdentityHitProcessor()
     private var identityProperties: IdentityProperties
+    private var hitQueue: PersistentHitQueue
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -23,9 +25,11 @@ struct IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties) {
+    init(identityProperties: IdentityProperties, hitQueue: PersistentHitQueue) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
+        self.hitQueue = hitQueue
+        self.hitQueue.delegate = hitProcessor
     }
     
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
@@ -85,8 +89,7 @@ struct IdentityState {
         
         // valid config: check if there's a need to sync. Don't if we're already up to date.
         if shouldSync(customerIds: customerIds, dpids: event.dpids, forceSync: event.forceSync, currentEventValidConfig: lastValidConfig) {
-            // TODO: AMSDK-10261 queue in DB
-            let _ = URL.buildIdentityHitURL(experienceCloudServer: "TODO", orgId: "TODO", identityProperties: identityProperties, dpids: event.dpids ?? [:])
+            queueHit(identityProperties: identityProperties, configSharedState: lastValidConfig, event: event)
         } else {
             // TODO: Log error
         }
@@ -96,6 +99,30 @@ struct IdentityState {
         
         // return event data to be used in identity shared state
         return identityProperties.toEventData()
+    }
+    
+    private func queueHit(identityProperties: IdentityProperties, configSharedState: [String: Any], event: Event) {
+        guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else {
+            // TODO: Add log
+            return
+        }
+        
+        guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else {
+            // TODO: Add log
+            return
+        }
+        
+        guard let url = URL.buildIdentityHitURL(experienceCloudServer: server, orgId: orgId, identityProperties: identityProperties, dpids: event.dpids ?? [:]) else {
+            // TODO: Add log
+            return
+        }
+        
+        guard let hitData = try? JSONEncoder().encode(IdentityHit(url: url, event: event)) else {
+            // TODO: Add log
+            return
+        }
+        
+        hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
     }
     
     /// Verifies if a sync network call is required. This method returns true if there is at least one identifier to be synced,

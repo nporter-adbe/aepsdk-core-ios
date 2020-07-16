@@ -16,11 +16,18 @@ class AEPIdentity: Extension {
     
     let name = IdentityConstants.EXTENSION_NAME
     let version = IdentityConstants.EXTENSION_VERSION
-    var state = IdentityState(identityProperties: IdentityProperties())
+    var state: IdentityState?
     
     // MARK: Extension
     required init(runtime: ExtensionRuntime) {
         self.runtime = runtime
+        
+        guard let dataQueue = AEPServiceProvider.shared.dataQueueService.getDataQueue(label: name) else {
+            // TODO: Log
+            return
+        }
+        
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: PersistentHitQueue(dataQueue: dataQueue))
     }
     
     func onRegistered() {
@@ -32,9 +39,9 @@ class AEPIdentity: Extension {
     func readyForEvent(_ event: Event) -> Bool {
         if event.isSyncEvent || event.type == .genericIdentity {
             guard let configSharedState = getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event)?.value else { return false }
-            return state.readyForSyncIdentifiers(event: event, configurationSharedState: configSharedState)
+            return state?.readyForSyncIdentifiers(event: event, configurationSharedState: configSharedState) ?? false
         }
-        
+
         return getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event)?.status == .set
     }
     
@@ -43,7 +50,7 @@ class AEPIdentity: Extension {
     private func handleIdentityRequest(event: Event) {
         
         if event.isSyncEvent || event.type == .genericIdentity {
-            if let eventData = state.syncIdentifiers(event: event) {
+            if let eventData = state?.syncIdentifiers(event: event) {
                 createSharedState(data: eventData, event: event)
             }
         }
