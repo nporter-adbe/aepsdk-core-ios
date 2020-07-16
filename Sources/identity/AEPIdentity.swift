@@ -27,7 +27,8 @@ class AEPIdentity: Extension {
             return
         }
         
-        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: PersistentHitQueue(dataQueue: dataQueue, processor: IdentityHitProcessor()))
+        let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: IdentityHitProcessor())
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: hitQueue, eventDispatcher: dispatch(event:))
     }
     
     func onRegistered() {

@@ -15,6 +15,7 @@ import Foundation
 class IdentityState {
     private var identityProperties: IdentityProperties
     private var hitQueue: PersistentHitQueue
+    private var eventDispatcher: (Event) -> ()
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -23,10 +24,11 @@ class IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties, hitQueue: PersistentHitQueue) {
+    init(identityProperties: IdentityProperties, hitQueue: PersistentHitQueue, eventDispatcher: @escaping (Event) -> ()) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
         self.hitQueue = hitQueue
+        self.eventDispatcher = eventDispatcher
         self.hitQueue.delegate = self
     }
     
@@ -178,11 +180,15 @@ extension IdentityState: HitQueueDelegate {
 
     // MARK: HitQueueDelegate
     func didProcess(hit: DataEntity) {
-        guard let data = hit.data, let hit = try? JSONDecoder().decode(IdentityHit.self, from: data) else { return }
+        guard let data = hit.data, let hit = try? JSONDecoder().decode(IdentityHit.self, from: data) else {
+            // TODO: Log
+            return
+        }
         
         // regardless of response, update last sync time
         identityProperties.lastSync = Date()
         
+        // check privacy here in case the status changed while response was in-flight
         if identityProperties.privacyStatus != .optedOut {
             // TODO: update properties
             
@@ -191,6 +197,12 @@ extension IdentityState: HitQueueDelegate {
         }
         
         // dispatch events
+        let eventData = identityProperties.toEventData()
+        let updatedIdentityEvent = Event(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+        let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+        eventDispatcher(updatedIdentityEvent)
+        eventDispatcher(identityResponse)
+        
     }
 }
 
