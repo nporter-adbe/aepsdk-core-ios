@@ -14,11 +14,13 @@ import AEPServices
 
 class IdentityHitProcessor: HitProcessable {
     let retryInterval = TimeInterval(30)
-    let responseHandler: (DataEntity, Data?) -> ()
+    private let responseHandler: (DataEntity, Data?) -> ()
     private var networkService: NetworkService {
         return AEPServiceProvider.shared.networkService
     }
     
+    /// Creates a new `IdentityHitProcessor` where the `responseHandler` will be invoked after each successful processing of a hit
+    /// - Parameter responseHandler: a function to be invoked with the `DataEntity` for a hit and the response data for that hit
     init(responseHandler: @escaping (DataEntity, Data?) -> ()) {
         self.responseHandler = responseHandler
     }
@@ -49,7 +51,6 @@ class IdentityHitProcessor: HitProcessable {
     private func handleNetworkResponse(entity: DataEntity, connection: HttpConnection, completion: @escaping (Bool) -> ()) {
         if connection.responseCode == 200 {
             // hit sent successfully
-
             responseHandler(entity, connection.data)
             completion(true)
         } else if NetworkServiceConstants.RECOVERABLE_ERROR_CODES.contains(connection.responseCode ?? -1) {

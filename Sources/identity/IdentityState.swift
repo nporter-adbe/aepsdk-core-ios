@@ -16,7 +16,7 @@ import AEPServices
 class IdentityState {
     
     private var identityProperties: IdentityProperties
-    private var hitQueue: PersistentHitQueue
+    private var hitQueue: HitQueuing
     private var hitProcessor: IdentityHitProcessor?
     private var eventDispatcher: (Event) -> ()
     #if DEBUG
@@ -27,7 +27,7 @@ class IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties, hitQueue: PersistentHitQueue, eventDispatcher: @escaping (Event) -> ()) {
+    init(identityProperties: IdentityProperties, hitQueue: HitQueuing, eventDispatcher: @escaping (Event) -> ()) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
         self.hitQueue = hitQueue

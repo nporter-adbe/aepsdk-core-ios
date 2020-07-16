@@ -38,6 +38,6 @@ struct IdentityRequestResponse: Codable {
         case hint = "dcs_region"
         case error = "error_msg"
         case ttl = "id_sync_ttl"
-        case optOutList = "d_optOut"
+        case optOutList = "d_optout"
     }
 }
