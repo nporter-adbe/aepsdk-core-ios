@@ -16,13 +16,12 @@ public class PersistentHitQueue: HitQueuing {
     let dataQueue: DataQueue
     weak public var delegate: HitProcessable?
     
-    private static let DEFAULT_RETRY_INTERVAL = TimeInterval(30)
     private var suspended = true
     private let queue = DispatchQueue(label: "com.adobe.mobile.hitqueue")
     
     /// Creates a new `HitQueue` with the underlying `DataQueue` which is used to persist hits
     /// - Parameter dataQueue: a `DataQueue` used to persist hits
-    init(dataQueue: DataQueue) {
+    public init(dataQueue: DataQueue) {
         self.dataQueue = dataQueue
     }
     
@@ -52,14 +51,16 @@ public class PersistentHitQueue: HitQueuing {
             guard !self.suspended else { return }
             guard let hit = self.dataQueue.peek() else { return } // nothing let in the queue, stop processing
             
-            self.delegate?.processHit(entity: hit, completion: { [weak self] (success) in
+            guard let delegate = self.delegate else { return }
+            
+            delegate.processHit(entity: hit, completion: { [weak self] (success) in
                 if success {
                     // successful processing of hit, remove it from the queue, move to next hit
                     let _ = self?.dataQueue.remove()
                     self?.processNextHit()
                 } else {
                     // processing hit failed, leave it in the queue, retry after the retry interval
-                    self?.queue.asyncAfter(deadline: .now() + (self?.delegate?.retryInterval ?? PersistentHitQueue.DEFAULT_RETRY_INTERVAL)) {
+                    self?.queue.asyncAfter(deadline: .now() + delegate.retryInterval) {
                         self?.processNextHit()
                     }
                 }
