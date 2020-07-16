@@ -183,11 +183,6 @@ extension IdentityState: HitQueueDelegate {
 
     // MARK: HitQueueDelegate
     func didProcess(hit: DataEntity, response: Data?) {
-        guard let data = hit.data, let hit = try? JSONDecoder().decode(IdentityHit.self, from: data) else {
-            // TODO: Log
-            return
-        }
-
         // regardless of response, update last sync time
         identityProperties.lastSync = Date()
 
@@ -202,9 +197,43 @@ extension IdentityState: HitQueueDelegate {
         // dispatch events
         let eventData = identityProperties.toEventData()
         let updatedIdentityEvent = Event(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
-        let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
         eventDispatcher(updatedIdentityEvent)
-        eventDispatcher(identityResponse)
+        
+        if let data = hit.data, let hit = try? JSONDecoder().decode(IdentityHit.self, from: data) {
+            let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+            eventDispatcher(identityResponse)
+        }
 
+    }
+    
+    private func handleNetworkResponse(response: Data?) {
+        guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityRequestResponse.self, from: data) else {
+            // TODO: Log
+            return
+        }
+        
+        if let optOutList = identityResponse.optOutList, !optOutList.isEmpty {
+            // Received opt-out response from ECID Service, so updating the privacy status in the configuration to opt-out.
+            let updateConfig = [ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut]
+            let event = Event(name: "Configuration Update From IdentityExtension", type: .configuration, source: .requestContent, data: [ConfigurationConstants.Keys.UPDATE_CONFIG: updateConfig])
+            eventDispatcher(event)
+        }
+        
+        //something's wrong - n/w call returned an error. update the pending state.
+        if let error = identityResponse.error {
+            // TODO: Log error
+            //should never happen bc we generate mid locally before n/w request.
+            // Still, generate mid locally if there's none yet.
+            identityProperties.mid = identityProperties.mid ?? MID()
+            return
+        }
+        
+        if let mid = identityResponse.mid, !mid.isEmpty {
+            identityProperties.blob = identityResponse.blob
+            identityProperties.locationHint = identityResponse.hint
+            identityProperties.ttl = identityResponse.ttl ?? IdentityConstants.DEFAULT_TTL
+            // TODO: Log update
+        }
+        
     }
 }
