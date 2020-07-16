@@ -21,5 +21,5 @@ public protocol HitProcessable: class {
     /// - Parameters:
     ///   - entity: The `DataEntity` to be processed
     ///   - completion: a closure to be invoked with `true` if processing was successful and should not be retried, false if processing the hit should be retried, along with optional response data
-    func processHit(entity: DataEntity, completion: (Bool, Data?) -> ())
+    func processHit(entity: DataEntity, completion: @escaping (Bool, Data?) -> ())
 }
