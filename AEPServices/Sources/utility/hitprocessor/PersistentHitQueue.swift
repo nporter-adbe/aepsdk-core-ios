@@ -51,15 +51,16 @@ public class PersistentHitQueue: HitQueuing {
         queue.async {
             guard !self.suspended else { return }
             guard let hit = self.dataQueue.peek() else { return } // nothing let in the queue, stop processing
+            guard let delegate = self.delegate else { return }
             
-            self.delegate?.processHit(entity: hit, completion: { [weak self] (success) in
+            delegate.processHit(entity: hit, completion: { [weak self] (success) in
                 if success {
                     // successful processing of hit, remove it from the queue, move to next hit
                     let _ = self?.dataQueue.remove()
                     self?.processNextHit()
                 } else {
                     // processing hit failed, leave it in the queue, retry after the retry interval
-                    self?.queue.asyncAfter(deadline: .now() + (self?.delegate?.retryInterval ?? PersistentHitQueue.DEFAULT_RETRY_INTERVAL)) {
+                    self?.queue.asyncAfter(deadline: .now() + delegate.retryInterval) {
                         self?.processNextHit()
                     }
                 }
