@@ -15,11 +15,11 @@ import AEPServices
 
 class IdentityStateTests: XCTestCase {
 
-    var state = IdentityState(identityProperties: IdentityProperties())
+    var state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
     
     override func setUp() {
         AEPServiceProvider.shared.namedKeyValueService = MockDataStore()
-        state = IdentityState(identityProperties: IdentityProperties())
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
     }
     
     // MARK: syncIdentifiers(...) tests
@@ -87,7 +87,7 @@ class IdentityStateTests: XCTestCase {
         let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         var props = IdentityProperties()
         props.advertisingIdentifier = "test-ad-id"
-        state = IdentityState(identityProperties: props)
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
         state.lastValidConfig = configSharedState
         
         // test
@@ -110,7 +110,7 @@ class IdentityStateTests: XCTestCase {
         var props = IdentityProperties()
         props.locationHint = "locHinty"
         props.blob = "blobby"
-        state = IdentityState(identityProperties: props)
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
         state.lastValidConfig = configSharedState
         
         // test
@@ -133,7 +133,7 @@ class IdentityStateTests: XCTestCase {
         props.mid = MID() // visitor ID is null initially and set for the first time in
         // shouldSync(). Mimic a second call to shouldSync by setting the mid
         props.lastSync = Date() // set last sync to now
-        state = IdentityState(identityProperties: props)
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
         state.lastValidConfig = configSharedState
         
         // test

@@ -10,11 +10,13 @@ governing permissions and limitations under the License.
 */
 
 import Foundation
+import AEPServices
 
 /// Manages the business logic of the Identity extension
 class IdentityState {
     
     private(set) var identityProperties: IdentityProperties
+    private var hitQueue: HitQueuing
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -23,9 +25,10 @@ class IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties) {
+    init(identityProperties: IdentityProperties, hitQueue: HitQueuing) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
+        self.hitQueue = hitQueue
     }
     
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
@@ -98,6 +101,36 @@ class IdentityState {
         return identityProperties.toEventData()
     }
     
+    /// Invoked by the Identity extension each time we receive a network response for a processed hit
+    /// - Parameters:
+    ///   - hit: the hit that was processed
+    ///   - response: the response data if any
+    ///   - eventDispatcher: a function which when invoked dispatches an `Event` to the `EventHub`
+    func handleHitResponse(hit: DataEntity, response: Data?, eventDispatcher: (Event) -> ()) {
+        // regardless of response, update last sync time
+        identityProperties.lastSync = Date()
+
+        // check privacy here in case the status changed while response was in-flight
+        if identityProperties.privacyStatus != .optedOut {
+           // update properties
+           handleNetworkResponse(response: response, eventDispatcher: eventDispatcher)
+
+            // save
+            identityProperties.saveToPersistence()
+        }
+
+        // dispatch events
+        let eventData = identityProperties.toEventData()
+        let updatedIdentityEvent = Event(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+        eventDispatcher(updatedIdentityEvent)
+
+        if let data = hit.data, let hit = try? JSONDecoder().decode(IdentityHit.self, from: data) {
+            let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+            eventDispatcher(identityResponse)
+        }
+
+    }
+    
     /// Verifies if a sync network call is required. This method returns true if there is at least one identifier to be synced,
     /// at least one dpid, if force sync is true (bootup identity sync call) or if the
     /// last sync was more than `ttl_` seconds ago. Also, in order for a sync call to happen, the provided configuration should be
@@ -147,4 +180,65 @@ class IdentityState {
         let existingAdId = identityProperties.advertisingIdentifier ?? ""
         return (!newAdID.isEmpty && newAdID != existingAdId) || (newAdID.isEmpty && !existingAdId.isEmpty)
     }
+    
+    /// Queues an Identity hit within the `hitQueue`
+    /// - Parameters:
+    ///   - identityProperties: Current identity properties
+    ///   - configSharedState: Current configuration shared state
+    ///   - event: event responsible for the hit
+    private func queueHit(identityProperties: IdentityProperties, configSharedState: [String: Any], event: Event) {
+        guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else {
+            // TODO: Add log
+            return
+        }
+
+        guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else {
+            // TODO: Add log
+            return
+        }
+
+        guard let url = URL.buildIdentityHitURL(experienceCloudServer: server, orgId: orgId, identityProperties: identityProperties, dpids: event.dpids ?? [:]) else {
+            // TODO: Add log
+            return
+        }
+
+        guard let hitData = try? JSONEncoder().encode(IdentityHit(url: url, event: event)) else {
+            // TODO: Add log
+            return
+        }
+
+        hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
+    }
+
+    private func handleNetworkResponse(response: Data?, eventDispatcher: (Event) -> ()) {
+        guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityHitResponse.self, from: data) else {
+            // TODO: Log
+            return
+        }
+
+        if let optOutList = identityResponse.optOutList, !optOutList.isEmpty {
+            // Received opt-out response from ECID Service, so updating the privacy status in the configuration to opt-out.
+            let updateConfig = [ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut]
+            let event = Event(name: "Configuration Update From IdentityExtension", type: .configuration, source: .requestContent, data: [ConfigurationConstants.Keys.UPDATE_CONFIG: updateConfig])
+            eventDispatcher(event)
+        }
+
+        //something's wrong - n/w call returned an error. update the pending state.
+        if let error = identityResponse.error {
+            // TODO: Log error
+            //should never happen bc we generate mid locally before n/w request.
+            // Still, generate mid locally if there's none yet.
+            identityProperties.mid = identityProperties.mid ?? MID()
+            return
+        }
+
+        if let mid = identityResponse.mid, !mid.isEmpty {
+            identityProperties.blob = identityResponse.blob
+            identityProperties.locationHint = identityResponse.hint
+            identityProperties.ttl = identityResponse.ttl ?? IdentityConstants.DEFAULT_TTL
+            // TODO: Log update
+        }
+
+    }
+
 }
