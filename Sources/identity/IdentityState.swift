@@ -12,20 +12,6 @@ governing permissions and limitations under the License.
 import Foundation
 import AEPServices
 
-extension HitQueuing {
-    func handlePrivacyChange(status: PrivacyStatus) {
-        switch status {
-        case .optedIn:
-            beginProcessing()
-        case .optedOut:
-            suspend()
-            clear()
-        case .unknown:
-            suspend()
-        }
-    }
-}
-
 /// Manages the business logic of the Identity extension
 class IdentityState {
     
