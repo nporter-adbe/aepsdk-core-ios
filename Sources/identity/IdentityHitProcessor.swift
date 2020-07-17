@@ -51,6 +51,7 @@ class IdentityHitProcessor: HitProcessable {
     private func handleNetworkResponse(entity: DataEntity, connection: HttpConnection, completion: @escaping (Bool) -> ()) {
         if connection.responseCode == 200 {
             // hit sent successfully
+            // TODO: Add log
             responseHandler(entity, connection.data)
             completion(true)
         } else if NetworkServiceConstants.RECOVERABLE_ERROR_CODES.contains(connection.responseCode ?? -1) {
