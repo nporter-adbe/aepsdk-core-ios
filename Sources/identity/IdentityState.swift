@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import Foundation
 
 /// Manages the business logic of the Identity extension
-struct IdentityState {
+class IdentityState {
     
     private(set) var identityProperties: IdentityProperties
     #if DEBUG
@@ -32,7 +32,7 @@ struct IdentityState {
     /// - Parameters:
     ///   - event: event corresponding to sync identifiers call or containing a new ADID value.
     ///   - configurationSharedState: config shared state corresponding to the event to be processed
-    mutating func readyForSyncIdentifiers(event: Event, configurationSharedState: [String: Any]) -> Bool {
+    func readyForSyncIdentifiers(event: Event, configurationSharedState: [String: Any]) -> Bool {
         // org id is a requirement.
         // Use what's in current config shared state. if that's missing, check latest config.
         // if latest config doesn't have org id either, Identity can't proceed.
@@ -52,7 +52,7 @@ struct IdentityState {
     /// - Parameters:
     ///   - event: event corresponding to sync identifiers call or containing a new ADID value.
     /// - Returns: The data to be used for Identity shared state
-    mutating func syncIdentifiers(event: Event) -> [String: Any]? {
+    func syncIdentifiers(event: Event) -> [String: Any]? {
         // sanity check, config should never be empty
         if lastValidConfig.isEmpty {
             // TODO: Add log
@@ -108,7 +108,7 @@ struct IdentityState {
     ///   - forceSync: indicates if this is a force sync call
     ///   - currentEventValidConfig: the current configuration for the event
     /// - Returns: True if a sync should be made, false otherwise
-    private mutating func shouldSync(customerIds: [CustomIdentity]?, dpids: [String: String]?, forceSync: Bool, currentEventValidConfig: [String: Any]) -> Bool {
+    private func shouldSync(customerIds: [CustomIdentity]?, dpids: [String: String]?, forceSync: Bool, currentEventValidConfig: [String: Any]) -> Bool {
         var syncForProps = true
         var syncForIds = true
         
