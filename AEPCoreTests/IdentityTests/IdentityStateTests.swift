@@ -16,6 +16,9 @@ import AEPServices
 class IdentityStateTests: XCTestCase {
 
     var state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
+    var mockHitQueue: MockHitQueue {
+        return state.hitQueue as! MockHitQueue
+    }
     
     override func setUp() {
         AEPServiceProvider.shared.namedKeyValueService = MockDataStore()
@@ -27,7 +30,9 @@ class IdentityStateTests: XCTestCase {
     /// Tests that syncIdentifiers appends the MID and the two custom IDs to the visitor ID list
     func testSyncIdentifiersHappyIDs() {
         // setup
-        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         state.lastValidConfig = configSharedState
         // test
         let eventData = state.syncIdentifiers(event: Event.fakeSyncIDEvent())
@@ -37,14 +42,15 @@ class IdentityStateTests: XCTestCase {
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
         let idList = eventData![IdentityConstants.EventDataKeys.VISITOR_IDS_LIST] as? [CustomIdentity]
         XCTAssertEqual(2, idList?.count)
-        
-        // TODO AMSDK-10261: Verify hit was inserted into DB
+        XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
     
     // TODO enable after AMSDK-10262
     func testSyncIdentifiersHappyPushID() {
         // setup
-        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         state.lastValidConfig = configSharedState
         
         // test
@@ -54,14 +60,15 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual(2, eventData!.count)
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
         XCTAssertEqual("test-push-id", eventData![IdentityConstants.EventDataKeys.PUSH_IDENTIFIER] as? String)
-        
-        // TODO AMSDK-10261: Verify hit was inserted into DB
+        XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
     
     /// Tests that the mid is appended and the ad id is appended to the visitor id list
     func testSyncIdentifiersHappyAdID() {
         // setup
-        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         state.lastValidConfig = configSharedState
         
         // test
@@ -77,17 +84,18 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual("test-ad-id", customId?.identifier)
         XCTAssertEqual("d_cid_ic", customId?.origin)
         XCTAssertEqual("DSID_20915", customId?.type)
-        
-        // TODO AMSDK-10261: Verify hit was inserted into DB
+        XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
     
     /// Tests that the ad is is correctly preserved when the same ad id is sync'd
     func testSyncIdentifiersAdIDIsSame() {
         // setup
-        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         var props = IdentityProperties()
         props.advertisingIdentifier = "test-ad-id"
-        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
         state.lastValidConfig = configSharedState
         
         // test
@@ -99,18 +107,19 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual(props.advertisingIdentifier, eventData![IdentityConstants.EventDataKeys.ADVERTISING_IDENTIFIER] as? String)
         let idList = eventData![IdentityConstants.EventDataKeys.VISITOR_IDS_LIST] as? [CustomIdentity]
         XCTAssertTrue(idList?.isEmpty ?? false)
-        
-        // TODO AMSDK-10261: Verify hit was inserted into DB
+        XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
     
     /// Tests that the location hint and blob are present int he event data
     func testSyncIdentifiersAppendsBlobAndLocationHint() {
         // setup
-        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         var props = IdentityProperties()
         props.locationHint = "locHinty"
         props.blob = "blobby"
-        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
         state.lastValidConfig = configSharedState
         
         // test
@@ -122,25 +131,28 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual(props.locationHint, eventData![IdentityConstants.EventDataKeys.VISITOR_ID_LOCATION_HINT] as? String)
         XCTAssertEqual(props.blob, eventData![IdentityConstants.EventDataKeys.VISITOR_ID_BLOB] as? String)
         // TODO AMSDK-10262: Assert push identifier
-        // TODO AMSDK-10261: Verify hit was inserted into DB
+        XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
     
     // Disabled, TODO: AMSDK-10261
     func testSyncIdentifiersDoesNotQueue() {
         // setup
-        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org", ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
+        let configSharedState = [ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         var props = IdentityProperties()
         props.mid = MID() // visitor ID is null initially and set for the first time in
         // shouldSync(). Mimic a second call to shouldSync by setting the mid
         props.lastSync = Date() // set last sync to now
-        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
         state.lastValidConfig = configSharedState
         
         // test
-        let _ = state.syncIdentifiers(event: Event.fakeSyncIDEvent())
+        let data = [IdentityConstants.EventDataKeys.IS_SYNC_EVENT: true] as [String : Any]
+        let _ = state.syncIdentifiers(event: Event(name: "ID Sync Test Event", type: .identity, source: .requestIdentity, data: data))
         
         // verify
-        // TODO AMSDK-10261: Assert hit was not queued in DB
+       XCTAssertTrue(mockHitQueue.queuedHits.isEmpty) // hit should NOT be queued in the hit queue
     }
     
     func testSyncIdentifiersWhenPrivacyIsOptIn() {

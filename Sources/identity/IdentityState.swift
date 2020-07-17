@@ -16,7 +16,7 @@ import AEPServices
 class IdentityState {
     
     private(set) var identityProperties: IdentityProperties
-    private var hitQueue: HitQueuing
+    private(set) var hitQueue: HitQueuing
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -88,8 +88,7 @@ class IdentityState {
         
         // valid config: check if there's a need to sync. Don't if we're already up to date.
         if shouldSync(customerIds: customerIds, dpids: event.dpids, forceSync: event.forceSync, currentEventValidConfig: lastValidConfig) {
-            // TODO: AMSDK-10261 queue in DB
-            let _ = URL.buildIdentityHitURL(experienceCloudServer: "TODO", orgId: "TODO", identityProperties: identityProperties, dpids: event.dpids ?? [:])
+            queueHit(identityProperties: identityProperties, configSharedState: lastValidConfig, event: event)
         } else {
             // TODO: Log error
         }
