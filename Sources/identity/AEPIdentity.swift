@@ -30,8 +30,7 @@ class AEPIdentity: Extension {
         }
         
         let hitProcessor = IdentityHitProcessor(responseHandler: handleNetworkResponse(entity:responseData:))
-        let hitQueue = PersistentHitQueue(dataQueue: dataQueue)
-        hitQueue.delegate = hitProcessor
+        let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: hitProcessor)
         state = IdentityState(identityProperties: IdentityProperties(), hitQueue: hitQueue, eventDispatcher: dispatch(event:))
     }
     
