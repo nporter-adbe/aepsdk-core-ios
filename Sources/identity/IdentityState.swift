@@ -12,6 +12,20 @@ governing permissions and limitations under the License.
 import Foundation
 import AEPServices
 
+extension HitQueuing {
+    func handlePrivacyChange(status: PrivacyStatus) {
+        switch status {
+        case .optedIn:
+            beginProcessing()
+        case .optedOut:
+            suspend()
+            clear()
+        case .unknown:
+            suspend()
+        }
+    }
+}
+
 /// Manages the business logic of the Identity extension
 class IdentityState {
     
@@ -127,6 +141,34 @@ class IdentityState {
             let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
             eventDispatcher(identityResponse)
         }
+    }
+    
+    func processPrivacyChange(event: Event) {
+        let privacyStatus = event.data?[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? PrivacyStatus.unknown
+        
+        if privacyStatus == .optedOut {
+            identityProperties.mid = nil
+            identityProperties.advertisingIdentifier = nil
+            identityProperties.blob = nil
+            identityProperties.locationHint = nil
+            identityProperties.customerIds?.removeAll()
+            
+            // TODO: Update push ID AMSDK-10262
+            identityProperties.saveToPersistence()
+            // save shared state
+            // make sure we ignore events if we are opted out
+            
+        } else if identityProperties.mid == nil {
+            // When changing privacy status from optedout, need to generate a new Experience Cloud ID for the user
+            // Queue up a request to sync the new ID with the Identity Service
+        }
+        
+        // update hit queue with privacy status
+        hitQueue.handlePrivacyChange(status: privacyStatus)
+    }
+    
+    func updateLastValidConfig(newConfig: [String: Any]) {
+        lastValidConfig = newConfig
     }
     
     // MARK: Private APIs

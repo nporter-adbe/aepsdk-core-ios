@@ -34,6 +34,7 @@ class AEPIdentity: Extension {
     
     func onRegistered() {
         registerListener(type: .identity, source: .requestIdentity, listener: handleIdentityRequest)
+        registerListener(type: .configuration, source: .responseContent, listener: handleIdentityRequest)
     }
     
     func onUnregistered() {}
@@ -60,6 +61,23 @@ class AEPIdentity: Extension {
             processGetUrlVariables(event: event)
         } else {
             processIdentifiersRequest(event: event)
+        }
+    }
+    
+    private func handleConfigurationResponse(event: Event) {
+        if let privacyStatus = event.data?[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus {
+            if privacyStatus == .optedOut {
+                // send opt-out hit
+                handleOptOut(event: event)
+            }
+            // if config contains new global privacy status, process the request
+            state?.processPrivacyChange(event: event)
+        }
+        
+        // if config contains org id, update the latest configuration
+        if let orgId = event.data?[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String, !orgId.isEmpty {
+            // update to new config
+            state?.updateLastValidConfig(newConfig: event.data ?? [:])
         }
     }
     
@@ -103,5 +121,22 @@ class AEPIdentity: Extension {
     ///   - responseData: the network response data if any
     private func handleNetworkResponse(entity: DataEntity, responseData: Data?) {
         state?.handleHitResponse(hit: entity, response: responseData, eventDispatcher: dispatch(event:))
+    }
+    
+    // MARK: Private Helpers
+    
+    /// Sends an opt-out network request if the current privacy status is opt-out
+    /// - Parameter event: the event responsible for sending this opt-out hit
+    private func handleOptOut(event: Event) {
+        // TODO: AMSDK-10267 Check if AAM will handle the opt-out hit
+        guard let configSharedState = getSharedState(extensionName: ConfigurationConstants.EXTENSION_NAME, event: event)?.value else { return }
+        let privacyStatus = configSharedState[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? PrivacyStatus.unknown
+        
+        if privacyStatus == .optedOut {
+            guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else { return }
+            guard let mid = state?.identityProperties.mid else { return }
+            guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else { return }
+            AEPServiceProvider.shared.networkService.sendOptOutRequest(orgId: orgId, mid: mid, experienceCloudServer: server)
+        }
     }
 }
