@@ -111,8 +111,8 @@ class IdentityState {
 
         // check privacy here in case the status changed while response was in-flight
         if identityProperties.privacyStatus != .optedOut {
-           // update properties
-           handleNetworkResponse(response: response, eventDispatcher: eventDispatcher)
+            // update properties
+            handleNetworkResponse(response: response, eventDispatcher: eventDispatcher)
 
             // save
             identityProperties.saveToPersistence()
@@ -129,6 +129,8 @@ class IdentityState {
         }
 
     }
+    
+    // MARK: Private APIs
     
     /// Verifies if a sync network call is required. This method returns true if there is at least one identifier to be synced,
     /// at least one dpid, if force sync is true (bootup identity sync call) or if the
@@ -208,7 +210,11 @@ class IdentityState {
 
         hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
     }
-
+    
+    /// Parses the network response from an identity hit
+    /// - Parameters:
+    ///   - response: the network response
+    ///   - eventDispatcher: a function which when invoked dispatches an `Event` to the `EventHub`
     private func handleNetworkResponse(response: Data?, eventDispatcher: (Event) -> ()) {
         guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityHitResponse.self, from: data) else {
             // TODO: Log

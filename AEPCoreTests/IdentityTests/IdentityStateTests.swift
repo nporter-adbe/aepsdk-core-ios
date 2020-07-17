@@ -210,6 +210,143 @@ class IdentityStateTests: XCTestCase {
         // verify
         XCTAssertFalse(readyForSync)
     }
+    
+    // MARK: handleHitResponse(...)
+    
+    /// Tests that when a non-opt out response is handled that we update the last sync and other identity properties, along with dispatching two identity events
+    func testHandleHitResponseHappy() {
+        // setup
+        let dispatchedEventExpectation = XCTestExpectation(description: "Two events should be dispatched")
+        dispatchedEventExpectation.expectedFulfillmentCount = 2 // 2 identity events
+        dispatchedEventExpectation.assertForOverFulfill = true
+        
+        var props = IdentityProperties()
+        props.lastSync = Date()
+        props.privacyStatus = .optedIn
+        let entity = DataEntity.fakeDataEntity()
+        let hitResponse = IdentityHitResponse.fakeHitResponse(error: nil, optOutList: nil)
+        
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        
+        // test
+        state.handleHitResponse(hit: entity, response: try! JSONEncoder().encode(hitResponse)) { (event) in
+            XCTAssertEqual(state.identityProperties.toEventData().count, event.data?.count) // event should contain the identity properties in the event data
+            dispatchedEventExpectation.fulfill()
+        }
+        
+        // verify
+        wait(for: [dispatchedEventExpectation], timeout: 0.5)
+        XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
+        XCTAssertEqual(hitResponse.blob, state.identityProperties.blob) // blob should have been updated
+        XCTAssertEqual(hitResponse.hint, state.identityProperties.locationHint) // locationHint should have been updated
+        XCTAssertEqual(hitResponse.ttl, state.identityProperties.ttl) // ttl should have been updated
+    }
+    
+    /// When the opt-out list in the response is not empty that we dispatch a configuration event setting the privacy to opt out
+    func testHandleHitResponseOptOutList() {
+        // setup
+        let dispatchedEventExpectation = XCTestExpectation(description: "Three events should be dispatched")
+        dispatchedEventExpectation.expectedFulfillmentCount = 3 // 2 identity events, 1 configuration
+        dispatchedEventExpectation.assertForOverFulfill = true
+        
+        var props = IdentityProperties()
+        props.lastSync = Date()
+        props.privacyStatus = .optedIn
+        let entity = DataEntity.fakeDataEntity()
+        let hitResponse = IdentityHitResponse.fakeHitResponse(error: nil, optOutList: ["optOut"])
+        
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        
+        // test
+        state.handleHitResponse(hit: entity, response: try! JSONEncoder().encode(hitResponse)) { (event) in
+            dispatchedEventExpectation.fulfill()
+        }
+        
+        // verify
+        wait(for: [dispatchedEventExpectation], timeout: 0.5)
+        XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
+        XCTAssertEqual(hitResponse.blob, state.identityProperties.blob) // blob should have been updated
+        XCTAssertEqual(hitResponse.hint, state.identityProperties.locationHint) // locationHint should have been updated
+        XCTAssertEqual(hitResponse.ttl, state.identityProperties.ttl) // ttl should have been updated
+    }
+    
+    /// Tests that when the hit response indicates an error that we do not update the identity properties
+    func testHandleHitResponseError() {
+        // setup
+        let dispatchedEventExpectation = XCTestExpectation(description: "Two events should be dispatched")
+        dispatchedEventExpectation.expectedFulfillmentCount = 2 // 2 identity events
+        dispatchedEventExpectation.assertForOverFulfill = true
+        
+        var props = IdentityProperties()
+        props.lastSync = Date()
+        props.privacyStatus = .optedIn
+        let entity = DataEntity.fakeDataEntity()
+        let hitResponse = IdentityHitResponse.fakeHitResponse(error: "err message", optOutList: nil)
+        
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        
+        // test
+        state.handleHitResponse(hit: entity, response: try! JSONEncoder().encode(hitResponse)) { (event) in
+            dispatchedEventExpectation.fulfill()
+        }
+        
+        // verify
+        wait(for: [dispatchedEventExpectation], timeout: 0.5)
+        XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
+        XCTAssertNotEqual(hitResponse.blob, state.identityProperties.blob) // blob should not have been updated
+        XCTAssertNotEqual(hitResponse.hint, state.identityProperties.locationHint) // locationHint should not have been updated
+        XCTAssertNotEqual(hitResponse.ttl, state.identityProperties.ttl) // ttl should not have been updated
+    }
+    
+    /// Tests that when we are opted out that we do not update the identity properties
+    func testHandleHitResponseOptOut() {
+        // setup
+        let dispatchedEventExpectation = XCTestExpectation(description: "Two events should be dispatched")
+        dispatchedEventExpectation.expectedFulfillmentCount = 2 // 2 identity events
+        dispatchedEventExpectation.assertForOverFulfill = true
+        
+        var props = IdentityProperties()
+        props.lastSync = Date()
+        props.privacyStatus = .optedOut
+        let entity = DataEntity.fakeDataEntity()
+        let hitResponse = IdentityHitResponse.fakeHitResponse(error: nil, optOutList: ["optOut"])
+        
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        
+        // test
+        state.handleHitResponse(hit: entity, response: try! JSONEncoder().encode(hitResponse)) { (event) in
+            dispatchedEventExpectation.fulfill()
+        }
+        
+        // verify
+        wait(for: [dispatchedEventExpectation], timeout: 0.5)
+        XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
+        XCTAssertNotEqual(hitResponse.blob, state.identityProperties.blob) // blob should not have been updated
+        XCTAssertNotEqual(hitResponse.hint, state.identityProperties.locationHint) // locationHint should not have been updated
+        XCTAssertNotEqual(hitResponse.ttl, state.identityProperties.ttl) // ttl should not have been updated
+    }
+    
+    /// Tests that when we get nil data back that we only dispatch one event and do not update the properties
+    func testHandleHitResponseNilData() {
+        // setup
+        let dispatchedEventExpectation = XCTestExpectation(description: "One event should be dispatched")
+        dispatchedEventExpectation.assertForOverFulfill = true
+        
+        var props = IdentityProperties()
+        props.lastSync = Date()
+        props.privacyStatus = .optedOut
+        
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        
+        // test
+        state.handleHitResponse(hit: DataEntity(uniqueIdentifier: "test-uuid", timestamp: Date(), data: nil), response: nil) { (event) in
+            dispatchedEventExpectation.fulfill()
+        }
+        
+        // verify
+        wait(for: [dispatchedEventExpectation], timeout: 0.5)
+        XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
+    }
 
 }
 
@@ -228,5 +365,21 @@ private extension Event {
     static func fakeAdIDEvent() -> Event {
         let data = [IdentityConstants.EventDataKeys.ADVERTISING_IDENTIFIER: "test-ad-id"]
         return Event(name: "Fake Sync Event", type: .genericIdentity, source: .requestReset, data: data)
+    }
+}
+
+private extension DataEntity {
+    static func fakeDataEntity() -> DataEntity {
+        let event = Event(name: "Hit Event", type: .identity, source: .requestIdentity, data: nil)
+        let hit = IdentityHit(url: URL(string: "adobe.com")!, event: event)
+        let entity = DataEntity(uniqueIdentifier: "test-uuid", timestamp: Date(), data: try! JSONEncoder().encode(hit))
+        
+        return entity
+    }
+}
+
+private extension IdentityHitResponse {
+    static func fakeHitResponse(error: String?, optOutList: [String]?) -> IdentityHitResponse {
+        return IdentityHitResponse(blob: "response-test-blob", mid: "response-test-mid", hint: "response-test-hint", error: error, ttl: 3000, optOutList: optOutList)
     }
 }
