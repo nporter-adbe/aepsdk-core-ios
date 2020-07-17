@@ -127,7 +127,6 @@ class IdentityState {
             let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
             eventDispatcher(identityResponse)
         }
-
     }
     
     // MARK: Private APIs
@@ -229,7 +228,7 @@ class IdentityState {
         }
 
         //something's wrong - n/w call returned an error. update the pending state.
-        if let error = identityResponse.error {
+        if let _ = identityResponse.error {
             // TODO: Log error
             //should never happen bc we generate mid locally before n/w request.
             // Still, generate mid locally if there's none yet.
