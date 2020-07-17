@@ -26,7 +26,6 @@
 		213F639E24C10AA2006931EB /* IdentityHit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F639D24C10AA2006931EB /* IdentityHit.swift */; };
 		213F63A024C10ACF006931EB /* IdentityHitResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F639F24C10ACF006931EB /* IdentityHitResponse.swift */; };
 		213F63A224C10B00006931EB /* IdentityHitResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F63A124C10B00006931EB /* IdentityHitResponseTests.swift */; };
-		213F63A424C10B38006931EB /* IdentityHitProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F63A324C10B38006931EB /* IdentityHitProcessor.swift */; };
 		213F662E2492A36A000184DE /* AEPError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F662D2492A36A000184DE /* AEPError.swift */; };
 		213F66302492A808000184DE /* MID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F662F2492A808000184DE /* MID.swift */; };
 		213F66322492A8B9000184DE /* MIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213F66312492A8B9000184DE /* MIDTests.swift */; };
@@ -233,7 +232,6 @@
 		213F639D24C10AA2006931EB /* IdentityHit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityHit.swift; sourceTree = "<group>"; };
 		213F639F24C10ACF006931EB /* IdentityHitResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityHitResponse.swift; sourceTree = "<group>"; };
 		213F63A124C10B00006931EB /* IdentityHitResponseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityHitResponseTests.swift; sourceTree = "<group>"; };
-		213F63A324C10B38006931EB /* IdentityHitProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityHitProcessor.swift; sourceTree = "<group>"; };
 		213F662D2492A36A000184DE /* AEPError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AEPError.swift; path = Sources/AEPError.swift; sourceTree = "<group>"; };
 		213F662F2492A808000184DE /* MID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MID.swift; sourceTree = "<group>"; };
 		213F66312492A8B9000184DE /* MIDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDTests.swift; sourceTree = "<group>"; };
@@ -528,7 +526,6 @@
 				2182778C24B792F9005A468A /* URLAppender.swift */,
 				213F639D24C10AA2006931EB /* IdentityHit.swift */,
 				213F639F24C10ACF006931EB /* IdentityHitResponse.swift */,
-				213F63A324C10B38006931EB /* IdentityHitProcessor.swift */,
 			);
 			name = identity;
 			path = Sources/identity;
@@ -1048,7 +1045,6 @@
 				2181948F2489FC97004F869A /* CustomIdentity.swift in Sources */,
 				21F02C322476F49F00D25528 /* LifecycleSession.swift in Sources */,
 				213F662E2492A36A000184DE /* AEPError.swift in Sources */,
-				213F63A424C10B38006931EB /* IdentityHitProcessor.swift in Sources */,
 				21B0B61924B3A6C8002A1B1A /* Event+Identity.swift in Sources */,
 				2137BA112498311600F01D04 /* URLQueryItem+Identity.swift in Sources */,
 				21649561249BD24E00B24F81 /* MobileIdentities.swift in Sources */,
