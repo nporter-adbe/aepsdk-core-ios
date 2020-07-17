@@ -181,6 +181,11 @@ class IdentityState {
         hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
     }
     
+    /// Invoked when the hit processor has successfully processed a hit
+    /// - Parameters:
+    ///   - hit: the hit that was processed
+    ///   - response: the response data associated with the hit if any
+    ///   - eventDispatcher: a function which dispatches an `Event` to the `EventHub`
     func didProcess(hit: DataEntity, response: Data?, eventDispatcher: (Event) -> ()) {
         // regardless of response, update last sync time
         identityProperties.lastSync = Date()
@@ -205,7 +210,11 @@ class IdentityState {
         }
 
     }
-
+    
+    /// Handles the network response after a hit has been sent to the server
+    /// - Parameters:
+    ///   - response: the response data
+    ///   - eventDispatcher: a function which dispatches an `Event` to the `EventHub`
     private func handleNetworkResponse(response: Data?, eventDispatcher: (Event) -> ()) {
         guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityHitResponse.self, from: data) else {
             // TODO: Log
