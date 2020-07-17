@@ -17,7 +17,7 @@ class IdentityState {
     
     private var identityProperties: IdentityProperties
     private var hitQueue: HitQueuing
-    private var eventDispatcher: (Event) -> ()
+    private let LOG_TAG = String(describing: IdentityState.self)
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -26,11 +26,10 @@ class IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties, hitQueue: HitQueuing, eventDispatcher: @escaping (Event) -> ()) {
+    init(identityProperties: IdentityProperties, hitQueue: HitQueuing) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
         self.hitQueue = hitQueue
-        self.eventDispatcher = eventDispatcher
     }
     
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
@@ -160,36 +159,36 @@ class IdentityState {
     ///   - event: event responsible for the hit
     private func queueHit(identityProperties: IdentityProperties, configSharedState: [String: Any], event: Event) {
         guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping hit because sever not found in configuration", [])
             return
         }
 
         guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping hit because orgId not found in configuration", [])
             return
         }
 
         guard let url = URL.buildIdentityHitURL(experienceCloudServer: server, orgId: orgId, identityProperties: identityProperties, dpids: event.dpids ?? [:]) else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping hit, failed to create Identity hit URL", [])
             return
         }
 
         guard let hitData = try? JSONEncoder().encode(IdentityHit(url: url, event: event)) else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping hit, failed to encode IdentityHit", [])
             return
         }
 
         hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
     }
     
-    func didProcess(hit: DataEntity, response: Data?) {
+    func didProcess(hit: DataEntity, response: Data?, eventDispatcher: (Event) -> ()) {
         // regardless of response, update last sync time
         identityProperties.lastSync = Date()
 
         // check privacy here in case the status changed while response was in-flight
         if identityProperties.privacyStatus != .optedOut {
            // update properties
-           handleNetworkResponse(response: response)
+           handleNetworkResponse(response: response, eventDispatcher: eventDispatcher)
 
             // save
             identityProperties.saveToPersistence()
@@ -207,7 +206,7 @@ class IdentityState {
 
     }
 
-    private func handleNetworkResponse(response: Data?) {
+    private func handleNetworkResponse(response: Data?, eventDispatcher: (Event) -> ()) {
         guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityHitResponse.self, from: data) else {
             // TODO: Log
             return

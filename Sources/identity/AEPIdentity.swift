@@ -31,7 +31,7 @@ class AEPIdentity: Extension {
         
         let hitProcessor = IdentityHitProcessor(responseHandler: handleNetworkResponse(entity:responseData:))
         let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: hitProcessor)
-        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: hitQueue, eventDispatcher: dispatch(event:))
+        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: hitQueue)
     }
     
     func onRegistered() {
@@ -63,6 +63,6 @@ class AEPIdentity: Extension {
     
     // MARK: Network Response Handler
     private func handleNetworkResponse(entity: DataEntity, responseData: Data?) {
-        state?.didProcess(hit: entity, response: responseData)
+        state?.didProcess(hit: entity, response: responseData, eventDispatcher: dispatch(event:))
     }
 }
