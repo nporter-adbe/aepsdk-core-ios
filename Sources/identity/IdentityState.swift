@@ -10,11 +10,14 @@ governing permissions and limitations under the License.
 */
 
 import Foundation
+import AEPServices
 
 /// Manages the business logic of the Identity extension
-struct IdentityState {
+class IdentityState {
     
     private var identityProperties: IdentityProperties
+    private var hitQueue: HitQueuing
+    private var eventDispatcher: (Event) -> ()
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -23,16 +26,18 @@ struct IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties) {
+    init(identityProperties: IdentityProperties, hitQueue: HitQueuing, eventDispatcher: @escaping (Event) -> ()) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
+        self.hitQueue = hitQueue
+        self.eventDispatcher = eventDispatcher
     }
     
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
     /// - Parameters:
     ///   - event: event corresponding to sync identifiers call or containing a new ADID value.
     ///   - configurationSharedState: config shared state corresponding to the event to be processed
-    mutating func readyForSyncIdentifiers(event: Event, configurationSharedState: [String: Any]) -> Bool {
+    func readyForSyncIdentifiers(event: Event, configurationSharedState: [String: Any]) -> Bool {
         // org id is a requirement.
         // Use what's in current config shared state. if that's missing, check latest config.
         // if latest config doesn't have org id either, Identity can't proceed.
@@ -52,7 +57,7 @@ struct IdentityState {
     /// - Parameters:
     ///   - event: event corresponding to sync identifiers call or containing a new ADID value.
     /// - Returns: The data to be used for Identity shared state
-    mutating func syncIdentifiers(event: Event) -> [String: Any]? {
+    func syncIdentifiers(event: Event) -> [String: Any]? {
         // sanity check, config should never be empty
         if lastValidConfig.isEmpty {
             // TODO: Add log
@@ -108,7 +113,7 @@ struct IdentityState {
     ///   - forceSync: indicates if this is a force sync call
     ///   - currentEventValidConfig: the current configuration for the event
     /// - Returns: True if a sync should be made, false otherwise
-    private mutating func shouldSync(customerIds: [CustomIdentity]?, dpids: [String: String]?, forceSync: Bool, currentEventValidConfig: [String: Any]) -> Bool {
+    private func shouldSync(customerIds: [CustomIdentity]?, dpids: [String: String]?, forceSync: Bool, currentEventValidConfig: [String: Any]) -> Bool {
         var syncForProps = true
         var syncForIds = true
         
@@ -147,4 +152,90 @@ struct IdentityState {
         let existingAdId = identityProperties.advertisingIdentifier ?? ""
         return (!newAdID.isEmpty && newAdID != existingAdId) || (newAdID.isEmpty && !existingAdId.isEmpty)
     }
+    
+    /// Queues an Identity hit within the `hitQueue`
+    /// - Parameters:
+    ///   - identityProperties: Current identity properties
+    ///   - configSharedState: Current configuration shared state
+    ///   - event: event responsible for the hit
+    private func queueHit(identityProperties: IdentityProperties, configSharedState: [String: Any], event: Event) {
+        guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else {
+            // TODO: Add log
+            return
+        }
+
+        guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else {
+            // TODO: Add log
+            return
+        }
+
+        guard let url = URL.buildIdentityHitURL(experienceCloudServer: server, orgId: orgId, identityProperties: identityProperties, dpids: event.dpids ?? [:]) else {
+            // TODO: Add log
+            return
+        }
+
+        guard let hitData = try? JSONEncoder().encode(IdentityHit(url: url, event: event)) else {
+            // TODO: Add log
+            return
+        }
+
+        hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
+    }
+    
+    func didProcess(hit: DataEntity, response: Data?) {
+        // regardless of response, update last sync time
+        identityProperties.lastSync = Date()
+
+        // check privacy here in case the status changed while response was in-flight
+        if identityProperties.privacyStatus != .optedOut {
+           // update properties
+           handleNetworkResponse(response: response)
+
+            // save
+            identityProperties.saveToPersistence()
+        }
+
+        // dispatch events
+        let eventData = identityProperties.toEventData()
+        let updatedIdentityEvent = Event(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+        eventDispatcher(updatedIdentityEvent)
+
+        if let data = hit.data, let hit = try? JSONDecoder().decode(IdentityHit.self, from: data) {
+            let identityResponse = hit.event.createResponseEvent(name: "Updated Identity Response", type: .identity, source: .responseIdentity, data: eventData)
+            eventDispatcher(identityResponse)
+        }
+
+    }
+
+    private func handleNetworkResponse(response: Data?) {
+        guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityHitResponse.self, from: data) else {
+            // TODO: Log
+            return
+        }
+
+        if let optOutList = identityResponse.optOutList, !optOutList.isEmpty {
+            // Received opt-out response from ECID Service, so updating the privacy status in the configuration to opt-out.
+            let updateConfig = [ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut]
+            let event = Event(name: "Configuration Update From IdentityExtension", type: .configuration, source: .requestContent, data: [ConfigurationConstants.Keys.UPDATE_CONFIG: updateConfig])
+            eventDispatcher(event)
+        }
+
+        //something's wrong - n/w call returned an error. update the pending state.
+        if let _ = identityResponse.error {
+            // TODO: Log error
+            //should never happen bc we generate mid locally before n/w request.
+            // Still, generate mid locally if there's none yet.
+            identityProperties.mid = identityProperties.mid ?? MID()
+            return
+        }
+
+        if let mid = identityResponse.mid, !mid.isEmpty {
+            identityProperties.blob = identityResponse.blob
+            identityProperties.locationHint = identityResponse.hint
+            identityProperties.ttl = identityResponse.ttl ?? IdentityConstants.DEFAULT_TTL
+            // TODO: Log update
+        }
+
+    }
+    
 }

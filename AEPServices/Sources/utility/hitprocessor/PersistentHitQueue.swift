@@ -22,7 +22,7 @@ public class PersistentHitQueue: HitQueuing {
     
     /// Creates a new `HitQueue` with the underlying `DataQueue` which is used to persist hits
     /// - Parameter dataQueue: a `DataQueue` used to persist hits
-    init(dataQueue: DataQueue) {
+    public init(dataQueue: DataQueue) {
         self.dataQueue = dataQueue
     }
     
