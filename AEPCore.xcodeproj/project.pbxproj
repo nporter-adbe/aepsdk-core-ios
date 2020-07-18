@@ -66,7 +66,8 @@
 		2182778F24B79320005A468A /* URLAppenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2182778E24B79320005A468A /* URLAppenderTests.swift */; };
 		218E72C324C216C000E09644 /* MockHitQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218E72C224C216C000E09644 /* MockHitQueue.swift */; };
 		218E72C524C2177B00E09644 /* MockHitProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218E72C424C2177B00E09644 /* MockHitProcessor.swift */; };
-		218E72C724C25E6B00E09644 /* HitQueuing+Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218E72C624C25E6B00E09644 /* HitQueuing+Identity.swift */; };
+		218E72C724C25E6B00E09644 /* HitQueuing+Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 218E72C624C25E6B00E09644 /* HitQueuing+Privacy.swift */; };
+		219A00E624C35B2900CB0AE4 /* HitQueuing+PrivacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 219A00E524C35B2900CB0AE4 /* HitQueuing+PrivacyTests.swift */; };
 		21A10255248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21A10254248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift */; };
 		21ABCAF324B39073008C4EDF /* MockDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2181730224A51BD20053439A /* MockDataStore.swift */; };
 		21B0B61924B3A6C8002A1B1A /* Event+Identity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B0B61824B3A6C8002A1B1A /* Event+Identity.swift */; };
@@ -281,7 +282,8 @@
 		2182778E24B79320005A468A /* URLAppenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLAppenderTests.swift; sourceTree = "<group>"; };
 		218E72C224C216C000E09644 /* MockHitQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHitQueue.swift; sourceTree = "<group>"; };
 		218E72C424C2177B00E09644 /* MockHitProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockHitProcessor.swift; sourceTree = "<group>"; };
-		218E72C624C25E6B00E09644 /* HitQueuing+Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HitQueuing+Identity.swift"; sourceTree = "<group>"; };
+		218E72C624C25E6B00E09644 /* HitQueuing+Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HitQueuing+Privacy.swift"; sourceTree = "<group>"; };
+		219A00E524C35B2900CB0AE4 /* HitQueuing+PrivacyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HitQueuing+PrivacyTests.swift"; sourceTree = "<group>"; };
 		21A10254248170E5009AB015 /* MockConfigurationDownloaderNetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockConfigurationDownloaderNetworkService.swift; sourceTree = "<group>"; };
 		21B0B61824B3A6C8002A1B1A /* Event+Identity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Event+Identity.swift"; sourceTree = "<group>"; };
 		21B0B61A24B3A7B7002A1B1A /* IdentityState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityState.swift; sourceTree = "<group>"; };
@@ -500,6 +502,7 @@
 				212760FA24B4E1C5003AAC41 /* IdentityStateTests.swift */,
 				213F63AB24C1590C006931EB /* IdentityHitProcessorTests.swift */,
 				213F63AD24C1591D006931EB /* IdentityHitResponseTests.swift */,
+				219A00E524C35B2900CB0AE4 /* HitQueuing+PrivacyTests.swift */,
 			);
 			path = IdentityTests;
 			sourceTree = "<group>";
@@ -543,7 +546,7 @@
 				213F63AF24C15962006931EB /* IdentityHit.swift */,
 				213F63B324C1598D006931EB /* IdentityHitResponse.swift */,
 				213F63B124C15977006931EB /* IdentityHitProcessor.swift */,
-				218E72C624C25E6B00E09644 /* HitQueuing+Identity.swift */,
+				218E72C624C25E6B00E09644 /* HitQueuing+Privacy.swift */,
 			);
 			name = identity;
 			path = Sources/identity;
@@ -1060,7 +1063,7 @@
 				2179F183246490140004A7C0 /* Lifecycle.swift in Sources */,
 				213C8BC8242426DC009F780A /* Extension.swift in Sources */,
 				21CAC0F524229CDB00C11388 /* Event.swift in Sources */,
-				218E72C724C25E6B00E09644 /* HitQueuing+Identity.swift in Sources */,
+				218E72C724C25E6B00E09644 /* HitQueuing+Privacy.swift in Sources */,
 				2181948F2489FC97004F869A /* CustomIdentity.swift in Sources */,
 				21F02C322476F49F00D25528 /* LifecycleSession.swift in Sources */,
 				213F662E2492A36A000184DE /* AEPError.swift in Sources */,
@@ -1156,6 +1159,7 @@
 				218E72C524C2177B00E09644 /* MockHitProcessor.swift in Sources */,
 				215AE3AB24BF740F00FC931F /* AEPIdentityTests.swift in Sources */,
 				21F02C382477077600D25528 /* ConfigurationStateTests.swift in Sources */,
+				219A00E624C35B2900CB0AE4 /* HitQueuing+PrivacyTests.swift in Sources */,
 				215CA8192481CA780078D778 /* LifecycleStateTests.swift in Sources */,
 				214149C72429A39B00FCE512 /* SlowMockExtension.swift in Sources */,
 				21F02C3E2477819100D25528 /* MockConfigurationDownloader.swift in Sources */,

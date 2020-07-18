@@ -14,9 +14,12 @@ import Foundation
 
 class MockHitQueue: HitQueuing {
     var processor: HitProcessable
-
     var queuedHits = [DataEntity]()
 
+    var calledBeginProcessing = false
+    var calledSuspend = false
+    var calledClear = false
+    
     init(processor: HitProcessable) {
         self.processor = processor
     }
@@ -27,15 +30,16 @@ class MockHitQueue: HitQueuing {
     }
 
     func beginProcessing() {
-        // no-op
+        calledBeginProcessing = true
     }
 
     func suspend() {
-        // no-op
+        calledSuspend = true
     }
 
     func clear() {
         queuedHits.removeAll()
+        calledClear = true
     }
 
 }
