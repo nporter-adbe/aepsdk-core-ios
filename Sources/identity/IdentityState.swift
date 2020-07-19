@@ -187,11 +187,8 @@ class IdentityState {
     ///   - configSharedState: Current configuration shared state
     ///   - event: event responsible for the hit
     private func queueHit(identityProperties: IdentityProperties, configSharedState: [String: Any], event: Event) {
-        guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else {
-            // TODO: Add log
-            return
-        }
-
+        let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String ?? IdentityConstants.Default.SERVER
+        
         guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else {
             // TODO: Add log
             return
@@ -239,7 +236,7 @@ class IdentityState {
         if let mid = identityResponse.mid, !mid.isEmpty {
             identityProperties.blob = identityResponse.blob
             identityProperties.locationHint = identityResponse.hint
-            identityProperties.ttl = identityResponse.ttl ?? IdentityConstants.DEFAULT_TTL
+            identityProperties.ttl = identityResponse.ttl ?? IdentityConstants.Default.TTL
             // TODO: Log update
         }
 
