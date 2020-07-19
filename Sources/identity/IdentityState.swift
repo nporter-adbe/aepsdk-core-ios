@@ -129,7 +129,7 @@ class IdentityState {
         }
     }
     
-    func processPrivacyChange(event: Event) {
+    func processPrivacyChange(event: Event, eventDispatcher: (Event) -> (), createSharedState: ([String: Any], Event) -> ()) {
         let privacyStatus = event.data?[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? PrivacyStatus.unknown
         
         if privacyStatus == .optedOut {
@@ -139,14 +139,18 @@ class IdentityState {
             identityProperties.locationHint = nil
             identityProperties.customerIds?.removeAll()
             
+            // TODO: Clear AID from analytics
+            
             // TODO: Update push ID AMSDK-10262
             identityProperties.saveToPersistence()
-            // save shared state
+            createSharedState(identityProperties.toEventData(), event)
             // make sure we ignore events if we are opted out
             
         } else if identityProperties.mid == nil {
             // When changing privacy status from optedout, need to generate a new Experience Cloud ID for the user
             // Queue up a request to sync the new ID with the Identity Service
+            let forceSyncEvent = event.forceSyncEvent()
+            eventDispatcher(forceSyncEvent)
         }
         
         // update hit queue with privacy status

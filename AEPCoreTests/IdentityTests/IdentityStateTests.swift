@@ -347,7 +347,48 @@ class IdentityStateTests: XCTestCase {
         wait(for: [dispatchedEventExpectation], timeout: 0.5)
         XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
     }
-
+    
+    // MARK: processPrivacyChange(...)
+    
+    /// Tests that when the event data is empty that we do not update shared state or the push identifier
+    func testProcessPrivacyChangeNilEventData() {
+        // setup
+        var props = IdentityProperties()
+        props.privacyStatus = .unknown
+        
+        state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()))
+        let event = Event(name: "Test event", type: .identity, source: .requestIdentity, data: nil)
+        
+        // test
+        state.processPrivacyChange(event: event, eventDispatcher: { (event) in
+            // nothing
+        }) { (sharedStateData, event) in
+            XCTFail("Shared state should not be updated")
+        }
+        
+        // verify
+        
+    }
+    
+    func testProcessPrivacyChangeNoPrivacyInEventData() {
+        
+    }
+    
+    func testProcessPrivacyChangeToOptIn() {
+        
+    }
+    
+    func testProcessPrivacyChangeToOptOut() {
+        
+    }
+    
+    func testProcessPrivacyChangeFromOptOutToOptIn() {
+        
+    }
+    
+    func testProcessPrivacyChangeFromOptOutToUnknown() {
+        
+    }
 }
 
 private extension Event {
