@@ -130,9 +130,15 @@ class IdentityState {
     }
     
     func processPrivacyChange(event: Event, eventDispatcher: (Event) -> (), createSharedState: ([String: Any], Event) -> ()) {
-        let privacyStatus = event.data?[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? PrivacyStatus.unknown
+        let newPrivacyStatus = event.data?[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? PrivacyStatus.unknown
         
-        if privacyStatus == .optedOut {
+        if newPrivacyStatus == identityProperties.privacyStatus {
+            return
+        }
+        
+        identityProperties.privacyStatus = newPrivacyStatus
+        
+        if newPrivacyStatus == .optedOut {
             identityProperties.mid = nil
             identityProperties.advertisingIdentifier = nil
             identityProperties.blob = nil
@@ -154,7 +160,7 @@ class IdentityState {
         }
         
         // update hit queue with privacy status
-        hitQueue.handlePrivacyChange(status: privacyStatus)
+        hitQueue.handlePrivacyChange(status: newPrivacyStatus)
     }
     
     func updateLastValidConfig(newConfig: [String: Any]) {

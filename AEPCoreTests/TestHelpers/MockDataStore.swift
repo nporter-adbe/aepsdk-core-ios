@@ -14,7 +14,7 @@ import Foundation
 import AEPServices
 
 class MockDataStore: NamedKeyValueService {
-    private var dict = [String: Any?]()
+    var dict = [String: Any?]()
     
     func set(collectionName: String, key: String, value: Any?) {
         dict[key] = value
