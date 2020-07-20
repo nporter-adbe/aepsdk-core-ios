@@ -14,7 +14,7 @@ import AEPServices
 
 class IdentityHitProcessor: HitProcessable {
     private let LOG_TAG = "IdentityHitProcessor"
-    
+
     let retryInterval = TimeInterval(30)
     private let responseHandler: (DataEntity, Data?) -> ()
     private var networkService: NetworkService {
@@ -28,7 +28,7 @@ class IdentityHitProcessor: HitProcessable {
     }
 
     // MARK: HitProcessable
-    
+
     func processHit(entity: DataEntity, completion: @escaping (Bool) -> ()) {
         guard let data = entity.data, let identityHit = try? JSONDecoder().decode(IdentityHit.self, from: data) else {
             // failed to convert data to hit, unrecoverable error, move to next hit
@@ -44,7 +44,7 @@ class IdentityHitProcessor: HitProcessable {
     }
 
     // MARK: Helpers
-    
+
     /// Handles the network response after a hit has been sent to the server
     /// - Parameters:
     ///   - entity: the data entity responsible for the hit
@@ -53,16 +53,16 @@ class IdentityHitProcessor: HitProcessable {
     private func handleNetworkResponse(entity: DataEntity, hit: IdentityHit, connection: HttpConnection, completion: @escaping (Bool) -> ()) {
         if connection.responseCode == 200 {
             // hit sent successfully
-            Log.debug(label: "\(LOG_TAG):\(#function)", "Identity hit request with url %s sent successfully", hit.url.absoluteString)
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Identity hit request with url \(hit.url.absoluteString) sent successfully")
             responseHandler(entity, connection.data)
             completion(true)
         } else if NetworkServiceConstants.RECOVERABLE_ERROR_CODES.contains(connection.responseCode ?? -1) {
             // retry this hit later
-            Log.warning(label: "\(LOG_TAG):\(#function)", "Retrying Identity hit, request with url %s failed with error %s and recoverable status code %d", hit.url.absoluteString, connection.error?.localizedDescription ?? "", connection.responseCode ?? -1)
+            Log.warning(label: "\(LOG_TAG):\(#function)", "Retrying Identity hit, request with url \(hit.url.absoluteString) failed with error \(connection.error?.localizedDescription ?? "") and recoverable status code \(connection.responseCode ?? -1)")
             completion(false)
         } else {
             // unrecoverable error. delete the hit from the database and continue
-            Log.warning(label: "\(LOG_TAG):\(#function)", "Dropping Identity hit, request with url %s failed with error %s and status code %d", hit.url.absoluteString, connection.error?.localizedDescription ?? "", connection.responseCode ?? -1)
+            Log.warning(label: "\(LOG_TAG):\(#function)", "Dropping Identity hit, request with url \(hit.url.absoluteString) failed with error \(connection.error?.localizedDescription ?? "") and recoverable status code \(connection.responseCode ?? -1)")
             responseHandler(entity, connection.data)
             completion(true)
         }

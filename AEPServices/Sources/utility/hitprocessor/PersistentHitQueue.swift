@@ -15,11 +15,11 @@ import Foundation
 public class PersistentHitQueue: HitQueuing {
     public let processor: HitProcessable
     let dataQueue: DataQueue
-    
+
     private static let DEFAULT_RETRY_INTERVAL = TimeInterval(30)
     private var suspended = true
     private let queue = DispatchQueue(label: "com.adobe.mobile.persistenthitqueue")
-    
+
     /// Creates a new `HitQueue` with the underlying `DataQueue` which is used to persist hits
     /// - Parameter dataQueue: a `DataQueue` used to persist hits
     /// - Parameter processor: a `HitProcessable` used to process hits
@@ -27,7 +27,7 @@ public class PersistentHitQueue: HitQueuing {
         self.dataQueue = dataQueue
         self.processor = processor
     }
-    
+
     @discardableResult
     public func queue(entity: DataEntity) -> Bool {
         let result = dataQueue.add(dataEntity: entity)
@@ -47,13 +47,13 @@ public class PersistentHitQueue: HitQueuing {
     public func clear() {
         let _ = dataQueue.clear()
     }
-    
+
     /// A recursive function for processing hits, it will continue processing all the hits until none are left in the data queue
     private func processNextHit() {
         queue.async {
             guard !self.suspended else { return }
             guard let hit = self.dataQueue.peek() else { return } // nothing let in the queue, stop processing
-            
+
             self.processor.processHit(entity: hit, completion: { [weak self] (success) in
                 if success {
                     // successful processing of hit, remove it from the queue, move to next hit

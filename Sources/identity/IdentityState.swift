@@ -10,11 +10,12 @@ governing permissions and limitations under the License.
 */
 
 import Foundation
+import AEPEventHub
 import AEPServices
 
 /// Manages the business logic of the Identity extension
 class IdentityState {
-    
+
     private(set) var identityProperties: IdentityProperties
     private(set) var hitQueue: HitQueuing
     #if DEBUG
@@ -22,7 +23,7 @@ class IdentityState {
     #else
     private var lastValidConfig: [String: Any] = [:]
     #endif
-    
+
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
     init(identityProperties: IdentityProperties, hitQueue: HitQueuing) {
@@ -30,7 +31,7 @@ class IdentityState {
         self.identityProperties.loadFromPersistence()
         self.hitQueue = hitQueue
     }
-    
+
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
     /// - Parameters:
     ///   - event: event corresponding to sync identifiers call or containing a new ADID value.
@@ -39,16 +40,16 @@ class IdentityState {
         // org id is a requirement.
         // Use what's in current config shared state. if that's missing, check latest config.
         // if latest config doesn't have org id either, Identity can't proceed.
-        if let orgId = configurationSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String, !orgId.isEmpty {
+        if let orgId = configurationSharedState[IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID] as? String, !orgId.isEmpty {
             lastValidConfig = configurationSharedState
         } else if lastValidConfig.isEmpty {
             // can't process this event, wait for a valid config and retry later
             return false
         }
-        
+
         return true
     }
-    
+
     /// Will queue a sync identifiers hit if there are any new valid identifiers to be synced (non null/empty id_type and id values),
     /// Updates the persistence values for the identifiers and ad id
     /// Assumes a valid config is in `lastValidConfig` from calling `readyForSyncIdentifiers`
@@ -61,45 +62,45 @@ class IdentityState {
             // TODO: Add log
             return nil
         }
-        
+
         // Early exit if privacy is opt-out
-        if lastValidConfig[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? .unknown == .optedOut {
+        if lastValidConfig[IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? .unknown == .optedOut {
             // TODO: Add log
             return nil
         }
-        
+
         // TODO: Save push ID AMSDK-10262
-        
+
         // generate customer ids
         let authState = event.authenticationState
         var customerIds = event.identifiers?.map({CustomIdentity(origin: IdentityConstants.VISITOR_ID_PARAMETER_KEY_CUSTOMER, type: $0.key, identifier: $0.value, authenticationState: authState)}) ?? []
-        
+
         // update adid if changed and extract the new adid value as VisitorId to be synced
         if let adId = event.adId, shouldUpdateAdId(newAdID: adId.identifier ?? "") {
             // check if changed, update
             identityProperties.advertisingIdentifier = adId.identifier
             customerIds.append(adId)
         }
-        
+
         // merge new identifiers with the existing ones and remove any VisitorIds with empty id values
         // empty adid is also removed from the customer_ids_ list by merging with the new ids then filtering out any empty ids
         identityProperties.mergeAndCleanCustomerIds(customerIds)
         customerIds.removeAll(where: {$0.identifier?.isEmpty ?? true}) // clean all identifiers by removing all that have a nil or empty identifier
-        
+
         // valid config: check if there's a need to sync. Don't if we're already up to date.
         if shouldSync(customerIds: customerIds, dpids: event.dpids, forceSync: event.forceSync, currentEventValidConfig: lastValidConfig) {
             queueHit(identityProperties: identityProperties, configSharedState: lastValidConfig, event: event)
         } else {
             // TODO: Log error
         }
-        
+
         // save properties
         identityProperties.saveToPersistence()
-        
+
         // return event data to be used in identity shared state
         return identityProperties.toEventData()
     }
-    
+
     /// Invoked by the Identity extension each time we receive a network response for a processed hit
     /// - Parameters:
     ///   - hit: the hit that was processed
@@ -128,9 +129,9 @@ class IdentityState {
             eventDispatcher(identityResponse)
         }
     }
-    
+
     // MARK: Private APIs
-    
+
     /// Verifies if a sync network call is required. This method returns true if there is at least one identifier to be synced,
     /// at least one dpid, if force sync is true (bootup identity sync call) or if the
     /// last sync was more than `ttl_` seconds ago. Also, in order for a sync call to happen, the provided configuration should be
@@ -144,35 +145,35 @@ class IdentityState {
     private func shouldSync(customerIds: [CustomIdentity]?, dpids: [String: String]?, forceSync: Bool, currentEventValidConfig: [String: Any]) -> Bool {
         var syncForProps = true
         var syncForIds = true
-        
+
         // check config
         if !canSyncForCurrentConfiguration(config: currentEventValidConfig) {
             // TOOD: Add log
             syncForProps = false
         }
-        
+
         let needResync = Date().timeIntervalSince1970 - (identityProperties.lastSync?.timeIntervalSince1970 ?? 0) > identityProperties.ttl || forceSync
         let hasIds = !(customerIds?.isEmpty ?? true)
         let hasDpids = !(dpids?.isEmpty ?? true)
-        
+
         if identityProperties.mid != nil && !hasIds && !hasDpids && !needResync {
             syncForIds = false
         } else if identityProperties.mid == nil {
             identityProperties.mid = MID()
         }
-        
+
         return syncForIds && syncForProps
     }
-    
+
     /// Inspects the current configuration to determine if a sync can be made, this is determined by if a valid org id is present and if the privacy is not set to opted-out
     /// - Parameter config: The current configuration
     /// - Returns: True if a sync can be made with the current configuration, false otherwise
     private func canSyncForCurrentConfiguration(config: [String: Any]) -> Bool {
-        let orgId = config[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String ?? ""
-        let privacyStatus = config[ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? .unknown
+        let orgId = config[IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID] as? String ?? ""
+        let privacyStatus = config[IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY] as? PrivacyStatus ?? .unknown
         return !orgId.isEmpty && privacyStatus != .optedOut
     }
-    
+
     /// Determines if we should update the ad id with `newAdID`
     /// - Parameter newAdID: the new ad id
     /// - Returns: True if we should update the ad id, false otherwise
@@ -180,16 +181,16 @@ class IdentityState {
         let existingAdId = identityProperties.advertisingIdentifier ?? ""
         return (!newAdID.isEmpty && newAdID != existingAdId) || (newAdID.isEmpty && !existingAdId.isEmpty)
     }
-    
+
     /// Queues an Identity hit within the `hitQueue`
     /// - Parameters:
     ///   - identityProperties: Current identity properties
     ///   - configSharedState: Current configuration shared state
     ///   - event: event responsible for the hit
     private func queueHit(identityProperties: IdentityProperties, configSharedState: [String: Any], event: Event) {
-        let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String ?? IdentityConstants.Default.SERVER
-        
-        guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else {
+        let server = configSharedState[IdentityConstants.Configuration.EXPERIENCE_CLOUD_SERVER] as? String ?? IdentityConstants.Default.SERVER
+
+        guard let orgId = configSharedState[IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID] as? String else {
             // TODO: Add log
             return
         }
@@ -206,7 +207,7 @@ class IdentityState {
 
         hitQueue.queue(entity: DataEntity(uniqueIdentifier: UUID().uuidString, timestamp: Date(), data: hitData))
     }
-    
+
     /// Parses the network response from an identity hit
     /// - Parameters:
     ///   - response: the network response
@@ -219,8 +220,8 @@ class IdentityState {
 
         if let optOutList = identityResponse.optOutList, !optOutList.isEmpty {
             // Received opt-out response from ECID Service, so updating the privacy status in the configuration to opt-out.
-            let updateConfig = [ConfigurationConstants.Keys.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut]
-            let event = Event(name: "Configuration Update From IdentityExtension", type: .configuration, source: .requestContent, data: [ConfigurationConstants.Keys.UPDATE_CONFIG: updateConfig])
+            let updateConfig = [IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut]
+            let event = Event(name: "Configuration Update From IdentityExtension", type: .configuration, source: .requestContent, data: [IdentityConstants.Configuration.UPDATE_CONFIG: updateConfig])
             eventDispatcher(event)
         }
 

@@ -15,7 +15,7 @@ struct IdentityConstants {
     static let EXTENSION_NAME = "com.adobe.module.identity"
     static let EXTENSION_VERSION = "0.0.1"
     static let DATASTORE_NAME = EXTENSION_NAME
-    
+
     static let API_TIMEOUT = TimeInterval(0.5) // Get API requests timeout after half a second
     static let RESPONSE_KEY_ORGID = "d_orgid"
     static let RESPONSE_KEY_MID = "d_mid"
@@ -25,7 +25,19 @@ struct IdentityConstants {
     static let KEY_PATH_OPTOUT = "/demoptout.jpg"
     static let CID_DELIMITER = "%01"
     static let ADID_DSID = "DSID_20915"
-    
+
+    struct SharedStateKeys {
+        static let CONFIGURATION = "com.adobe.module.configuration"
+    }
+
+    struct Configuration {
+        static let EXPERIENCE_CLOUD_ORGID = "experienceCloud.org"
+        static let EXPERIENCE_CLOUD_SERVER = "experienceCloud.server"
+        static let GLOBAL_CONFIG_PRIVACY = "global.privacy"
+        static let ALL_IDENTIFIERS = "config.allidentifiers"
+        static let UPDATE_CONFIG = "config.update"
+    }
+
     struct EventDataKeys {
         static let BASE_URL = "baseurl"
         static let UPDATED_URL = "updatedurl"
@@ -43,11 +55,11 @@ struct IdentityConstants {
         static let VISITOR_IDS_LAST_SYNC = "lastsync"
         static let MCPNS_DPID = "20920"
     }
-    
+
     struct DataStoreKeys {
         static let IDENTITY_PROPERTIES = "identitiesproperties"
     }
-    
+
     struct URLKeys {
         static let VISITOR_TIMESTAMP_KEY = "TS"
         static let VISITOR_PAYLOAD_MARKETING_CLOUD_ID_KEY = "MCMID"
@@ -56,13 +68,13 @@ struct IdentityConstants {
         static let VISITOR_PAYLOAD_ANALYTICS_ID_KEY = "MCAID"
         static let ANALYTICS_PAYLOAD_KEY = "adobe_aa_vid"
     }
-    
+
     struct Default {
         static let TTL = TimeInterval(600)
         static let TIMEOUT = TimeInterval(2000)
         static let SERVER = "dpm.demdex.net"
     }
-    
+
     struct Analytics {
         static let ANALYTICS_ID = "aid"
         static let VISITOR_IDENTIFIER  = "vid"

@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 
 import Foundation
 
-struct ConfigurationConstants {
+struct CoreConstants {
     static let EXTENSION_NAME = "com.adobe.module.configuration"
     static let EXTENSION_VERSION = "0.0.1"
     static let DATA_STORE_NAME = EXTENSION_NAME

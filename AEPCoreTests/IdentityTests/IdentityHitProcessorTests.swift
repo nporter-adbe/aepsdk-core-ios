@@ -12,6 +12,7 @@ governing permissions and limitations under the License.
 import XCTest
 @testable import AEPCore
 @testable import AEPServices
+@testable import AEPEventHub
 
 class IdentityHitProcessorTests: XCTestCase {
 
@@ -33,7 +34,7 @@ class IdentityHitProcessorTests: XCTestCase {
         // setup
         let expectation = XCTestExpectation(description: "Callback should be invoked with true signaling this hit should not be retried")
         let entity = DataEntity(uniqueIdentifier: "test-uuid", timestamp: Date(), data: nil) // entity data does not contain an `IdentityHit`
-        
+
         // test
         hitProcessor.processHit(entity: entity) { (success) in
             XCTAssertTrue(success)
