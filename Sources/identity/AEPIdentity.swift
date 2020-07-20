@@ -25,7 +25,7 @@ class AEPIdentity: Extension {
         self.runtime = runtime
 
         guard let dataQueue = AEPServiceProvider.shared.dataQueueService.getDataQueue(label: name) else {
-            // TODO: Log
+            Log.error(label: "\(name):\(#function)", "Failed to create data queue, Identity could not be initialized")
             return
         }
 
