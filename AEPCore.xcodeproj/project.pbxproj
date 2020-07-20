@@ -51,6 +51,8 @@
 		21629DAC2461CA88009D05BF /* LifecycleConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21629DAB2461CA88009D05BF /* LifecycleConstants.swift */; };
 		21629DB02461CAD0009D05BF /* AEPCore+Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21629DAF2461CAD0009D05BF /* AEPCore+Lifecycle.swift */; };
 		21629DB22461CC48009D05BF /* AEPCore+LifecycleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21629DB12461CC48009D05BF /* AEPCore+LifecycleTests.swift */; };
+		21647E4124C6130F00993DF5 /* PushIDManageable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21647E4024C6130F00993DF5 /* PushIDManageable.swift */; };
+		21647E4324C61CDA00993DF5 /* Data+SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21647E4224C61CDA00993DF5 /* Data+SHA256.swift */; };
 		21649561249BD24E00B24F81 /* MobileIdentities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21649560249BD24E00B24F81 /* MobileIdentities.swift */; };
 		21649563249BECE600B24F81 /* MobileIdentitiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21649562249BECE600B24F81 /* MobileIdentitiesTests.swift */; };
 		216CD93524BE2D1A00C4E060 /* Event+Lifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21629DAD2461CABE009D05BF /* Event+Lifecycle.swift */; };
@@ -266,6 +268,8 @@
 		21629DAD2461CABE009D05BF /* Event+Lifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Event+Lifecycle.swift"; path = "Sources/Lifecycle/Event+Lifecycle.swift"; sourceTree = SOURCE_ROOT; };
 		21629DAF2461CAD0009D05BF /* AEPCore+Lifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AEPCore+Lifecycle.swift"; path = "Sources/Lifecycle/AEPCore+Lifecycle.swift"; sourceTree = SOURCE_ROOT; };
 		21629DB12461CC48009D05BF /* AEPCore+LifecycleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AEPCore+LifecycleTests.swift"; sourceTree = "<group>"; };
+		21647E4024C6130F00993DF5 /* PushIDManageable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushIDManageable.swift; sourceTree = "<group>"; };
+		21647E4224C61CDA00993DF5 /* Data+SHA256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+SHA256.swift"; sourceTree = "<group>"; };
 		21649560249BD24E00B24F81 /* MobileIdentities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MobileIdentities.swift; path = Sources/configuration/MobileIdentities.swift; sourceTree = SOURCE_ROOT; };
 		21649562249BECE600B24F81 /* MobileIdentitiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileIdentitiesTests.swift; sourceTree = "<group>"; };
 		2181730224A51BD20053439A /* MockDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataStore.swift; sourceTree = "<group>"; };
@@ -547,6 +551,8 @@
 				213F63B324C1598D006931EB /* IdentityHitResponse.swift */,
 				213F63B124C15977006931EB /* IdentityHitProcessor.swift */,
 				218E72C624C25E6B00E09644 /* HitQueuing+Privacy.swift */,
+				21647E4024C6130F00993DF5 /* PushIDManageable.swift */,
+				21647E4224C61CDA00993DF5 /* Data+SHA256.swift */,
 			);
 			name = identity;
 			path = Sources/identity;
@@ -1061,6 +1067,7 @@
 			files = (
 				213C8C0824297773009F780A /* EventHubError.swift in Sources */,
 				2179F183246490140004A7C0 /* Lifecycle.swift in Sources */,
+				21647E4324C61CDA00993DF5 /* Data+SHA256.swift in Sources */,
 				213C8BC8242426DC009F780A /* Extension.swift in Sources */,
 				21CAC0F524229CDB00C11388 /* Event.swift in Sources */,
 				218E72C724C25E6B00E09644 /* HitQueuing+Privacy.swift in Sources */,
@@ -1105,6 +1112,7 @@
 				21F361A0246DE4B5009AB88B /* LifecycleMetrics.swift in Sources */,
 				214B5227248ABD5D0034BF22 /* IdentityConstants.swift in Sources */,
 				21B0B61B24B3A7B7002A1B1A /* IdentityState.swift in Sources */,
+				21647E4124C6130F00993DF5 /* PushIDManageable.swift in Sources */,
 				213F63B224C15977006931EB /* IdentityHitProcessor.swift in Sources */,
 				2181948D2489FA40004F869A /* MobileVisitorAuthenticationState.swift in Sources */,
 				213F66342492C06B000184DE /* IdentityProperties.swift in Sources */,
