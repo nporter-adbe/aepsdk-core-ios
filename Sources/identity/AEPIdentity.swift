@@ -34,7 +34,7 @@ class AEPIdentity: Extension {
     
     func onRegistered() {
         registerListener(type: .identity, source: .requestIdentity, listener: handleIdentityRequest)
-        registerListener(type: .configuration, source: .responseContent, listener: handleIdentityRequest)
+        registerListener(type: .configuration, source: .responseContent, listener: handleConfigurationResponse)
     }
     
     func onUnregistered() {}
@@ -135,7 +135,7 @@ class AEPIdentity: Extension {
         if privacyStatus == .optedOut {
             guard let orgId = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_ORGID] as? String else { return }
             guard let mid = state?.identityProperties.mid else { return }
-            guard let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String else { return }
+            let server = configSharedState[ConfigurationConstants.Keys.EXPERIENCE_CLOUD_SERVER] as? String ?? IdentityConstants.DEFAULT_SERVER
             AEPServiceProvider.shared.networkService.sendOptOutRequest(orgId: orgId, mid: mid, experienceCloudServer: server)
         }
     }
