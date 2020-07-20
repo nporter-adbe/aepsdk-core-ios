@@ -15,7 +15,8 @@ import AEPServices
 
 /// Manages the business logic of the Identity extension
 class IdentityState {
-
+    
+    private let LOG_TAG = "IdentityState"
     private(set) var identityProperties: IdentityProperties
     private(set) var hitQueue: HitQueuing
     #if DEBUG
@@ -191,17 +192,17 @@ class IdentityState {
         let server = configSharedState[IdentityConstants.Configuration.EXPERIENCE_CLOUD_SERVER] as? String ?? IdentityConstants.Default.SERVER
 
         guard let orgId = configSharedState[IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID] as? String else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping Identity hit, orgId is not present")
             return
         }
 
         guard let url = URL.buildIdentityHitURL(experienceCloudServer: server, orgId: orgId, identityProperties: identityProperties, dpids: event.dpids ?? [:]) else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping Identity hit, failed to create hit URL")
             return
         }
 
         guard let hitData = try? JSONEncoder().encode(IdentityHit(url: url, event: event)) else {
-            // TODO: Add log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Dropping Identity hit, failed to encode IdentityHit")
             return
         }
 
@@ -214,7 +215,7 @@ class IdentityState {
     ///   - eventDispatcher: a function which when invoked dispatches an `Event` to the `EventHub`
     private func handleNetworkResponse(response: Data?, eventDispatcher: (Event) -> ()) {
         guard let data = response, let identityResponse = try? JSONDecoder().decode(IdentityHitResponse.self, from: data) else {
-            // TODO: Log
+            Log.debug(label: "\(LOG_TAG):\(#function)", "Failed to decode Identity hit response")
             return
         }
 
@@ -226,11 +227,11 @@ class IdentityState {
         }
 
         //something's wrong - n/w call returned an error. update the pending state.
-        if let _ = identityResponse.error {
-            // TODO: Log error
+        if let error = identityResponse.error {
             //should never happen bc we generate mid locally before n/w request.
             // Still, generate mid locally if there's none yet.
             identityProperties.mid = identityProperties.mid ?? MID()
+            Log.error(label: "\(LOG_TAG):\(#function)", "Identity response returned error: \(error)")
             return
         }
 
@@ -238,7 +239,6 @@ class IdentityState {
             identityProperties.blob = identityResponse.blob
             identityProperties.locationHint = identityResponse.hint
             identityProperties.ttl = identityResponse.ttl ?? IdentityConstants.Default.TTL
-            // TODO: Log update
         }
 
     }
