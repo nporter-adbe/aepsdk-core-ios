@@ -26,7 +26,7 @@ struct IdentityProperties: Codable {
     }
     
     /// The SHA1 hashed push Identifier
-    var pushIdentifier: Data?
+    var pushIdentifier: String?
     
     /// The Blob value
     var blob: String?

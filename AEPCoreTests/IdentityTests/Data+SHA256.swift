@@ -9,17 +9,14 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import Foundation
-import AEPServices
-import CommonCrypto
+import XCTest
+@testable import AEPCore
 
-/// Defines instances that can manage a push identifier
-protocol PushIDManageable {
+class Data_SHA256: XCTestCase {
     
-    /// Returns true if push is enabled, false otherwise
-    var pushEnabled: Bool { get set }
-    
-    init(dataStore: NamedKeyValueStore, eventDispatcher: @escaping (Event) -> ())
-    
-    mutating func updatePushId(pushId: String?)
+    /// Tests that empty data remains empty after 256 hashing
+    func testSHA256Empty() {
+        XCTAssertEqual(0, Data().sha256()?.count)
+    }
+
 }

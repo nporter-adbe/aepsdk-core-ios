@@ -12,16 +12,26 @@ governing permissions and limitations under the License.
 import Foundation
 import CommonCrypto
 
+// Ref: https://stackoverflow.com/questions/25388747/sha256-in-swift
 extension Data {
-    // Ref: https://stackoverflow.com/questions/25388747/sha256-in-swift
     /// Hashes this data with shag 256
+    /// - Returns: This data hashed with sha256
     func sha256() -> Data? {
-        
-        var hash = [UInt8](repeating: 0,  count: Int(CC_SHA256_DIGEST_LENGTH))
-        withUnsafeBytes {
-            _ = CC_SHA256($0.baseAddress, CC_LONG(count), &hash)
-        }
-        
-        return Data(hash)
+        guard let res = NSMutableData(length: Int(CC_SHA256_DIGEST_LENGTH)) else { return nil }
+        CC_SHA256((self as NSData).bytes, CC_LONG(count), res.mutableBytes.assumingMemoryBound(to: UInt8.self))
+        return res as Data
+    }
+}
+
+extension String {
+    /// Hashes this data with shah 256
+    /// - Returns: This string hashed with sha256
+    func sha256() -> String? {
+        guard
+            let data = self.data(using: String.Encoding.utf8),
+            let shaData = data.sha256()
+            else { return nil }
+        let rc = shaData.base64EncodedString(options: [])
+        return rc
     }
 }
