@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		21234E2824C8A4F200AAC8DE /* SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2724C8A4F200AAC8DE /* SHA256.swift */; };
+		21234E2B24C8A50C00AAC8DE /* PushIDManageable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */; };
+		21234E2C24C8A50C00AAC8DE /* PushIDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */; };
 		21315BB524575ED200D1B254 /* AEPCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB424575ED200D1B254 /* AEPCore.swift */; };
 		2131A1B42465D81E00F1392D /* EventHub+Testable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2131A1B32465D81E00F1392D /* EventHub+Testable.swift */; };
 		213C8BD524252302009F780A /* MockExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213C8BD424252302009F780A /* MockExtension.swift */; };
@@ -334,6 +337,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		21234E2724C8A4F200AAC8DE /* SHA256.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SHA256.swift; sourceTree = "<group>"; };
+		21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushIDManageable.swift; sourceTree = "<group>"; };
+		21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushIDManager.swift; sourceTree = "<group>"; };
 		21315BB424575ED200D1B254 /* AEPCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AEPCore.swift; path = Sources/AEPCore.swift; sourceTree = "<group>"; };
 		2131A1B32465D81E00F1392D /* EventHub+Testable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "EventHub+Testable.swift"; sourceTree = "<group>"; };
 		213C8BD424252302009F780A /* MockExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockExtension.swift; sourceTree = "<group>"; };
@@ -842,6 +848,7 @@
 				3F0397EF24BE60910019F095 /* ThreadSafeDictionary.swift */,
 				3F0397F024BE60910019F095 /* URLEncoder.swift */,
 				3F0397F124BE60910019F095 /* AnyCodable.swift */,
+				21234E2724C8A4F200AAC8DE /* SHA256.swift */,
 			);
 			path = utility;
 			sourceTree = "<group>";
@@ -1097,6 +1104,8 @@
 				3FE6DE5224C643060065EA05 /* URLAppender.swift */,
 				3FE6DE4724C643050065EA05 /* URLQueryItem+Identity.swift */,
 				218E01C124C75C1500BEC470 /* HitQueuing+Privacy.swift */,
+				21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */,
+				21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */,
 				3FE6DE3124C642330065EA05 /* AEPIdentity.h */,
 				3FE6DE3224C642330065EA05 /* Info.plist */,
 			);
@@ -1635,6 +1644,7 @@
 				3F0397FD24BE60910019F095 /* ThreadSafeDictionary.swift in Sources */,
 				3F0397F824BE60910019F095 /* ZipEntry.swift in Sources */,
 				3F0397F424BE60910019F095 /* HitQueuing.swift in Sources */,
+				21234E2824C8A4F200AAC8DE /* SHA256.swift in Sources */,
 				3F0397DB24BE5FF30019F095 /* NamedKeyValueStore.swift in Sources */,
 				3F0397C524BE5FF30019F095 /* CacheEntry.swift in Sources */,
 				3F0397F524BE60910019F095 /* AtomicCounter.swift in Sources */,
@@ -1786,6 +1796,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3FE6DE5F24C643060065EA05 /* NetworkService+Identity.swift in Sources */,
+				21234E2B24C8A50C00AAC8DE /* PushIDManageable.swift in Sources */,
 				3FE6DE6024C643060065EA05 /* IdentityState.swift in Sources */,
 				3FE6DE5D24C643060065EA05 /* IdentityConstants.swift in Sources */,
 				218E01C224C75C1500BEC470 /* HitQueuing+Privacy.swift in Sources */,
@@ -1802,6 +1813,7 @@
 				3FE6DE6A24C643060065EA05 /* Identifiable.swift in Sources */,
 				3FE6DE6124C643060065EA05 /* MID.swift in Sources */,
 				3FE6DE6524C643060065EA05 /* URLAppender.swift in Sources */,
+				21234E2C24C8A50C00AAC8DE /* PushIDManager.swift in Sources */,
 				3FE6DE5B24C643060065EA05 /* IdentityProperties.swift in Sources */,
 				3FE6DE6624C643060065EA05 /* MobileIdentities.swift in Sources */,
 				3FE6DE6B24C643060065EA05 /* URL+Identity.swift in Sources */,

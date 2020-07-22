@@ -27,6 +27,8 @@ struct IdentityConstants {
     static let DEFAULT_SERVER = "dpm.demdex.net"
     static let CID_DELIMITER = "%01"
     static let ADID_DSID = "DSID_20915"
+    static let EVENT_PUSH_STATUS = "a.push.optin"
+    static let PUSH_ID_ENABLED_ACTION_NAME = "Push"
     
     struct SharedStateKeys {
         static let CONFIGURATION = "com.adobe.module.configuration"
@@ -38,6 +40,11 @@ struct IdentityConstants {
         static let GLOBAL_CONFIG_PRIVACY = "global.privacy"
         static let ALL_IDENTIFIERS = "config.allidentifiers"
         static let UPDATE_CONFIG = "config.update"
+    }
+    
+    struct Analytics {
+        static let TRACK_ACTION = "action"
+        static let CONTEXT_DATA = "contextdata"
     }
     
     struct EventDataKeys {
@@ -60,6 +67,7 @@ struct IdentityConstants {
     
     struct DataStoreKeys {
         static let IDENTITY_PROPERTIES = "identitiesproperties"
+        static let PUSH_ENABLED = "ADOBEMOBILE_PUSH_ENABLED"
     }
     
     struct URLKeys {
