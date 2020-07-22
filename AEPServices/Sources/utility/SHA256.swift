@@ -13,7 +13,7 @@ import Foundation
 import CommonCrypto
 
 // Ref: https://stackoverflow.com/questions/25388747/sha256-in-swift
-extension Data {
+public extension Data {
     /// Hashes this data with shag 256
     /// - Returns: This data hashed with sha256
     func sha256() -> Data? {
@@ -23,7 +23,7 @@ extension Data {
     }
 }
 
-extension String {
+public extension String {
     /// Hashes this data with shah 256
     /// - Returns: This string hashed with sha256
     func sha256() -> String? {
