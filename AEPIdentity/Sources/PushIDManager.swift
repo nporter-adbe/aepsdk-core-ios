@@ -14,6 +14,8 @@ import AEPEventHub
 import AEPServices
 
 struct PushIDManager: PushIDManageable {
+    private let LOG_TAG = "PushIDManager"
+    
     private var pushEnabled: Bool {
         get {
             return dataStore.getBool(key: IdentityConstants.DataStoreKeys.PUSH_ENABLED) ?? false
@@ -38,11 +40,12 @@ struct PushIDManager: PushIDManageable {
             return
         }
 
-        if pushId?.isEmpty ?? true && pushEnabled {
+        if pushId?.isEmpty ?? true && !pushEnabled {
             updatePushStatusAndSendAnalyticsEvent(enabled: false)
-        }
-
-        if let pushId = pushId, !pushId.isEmpty, !pushEnabled {
+            Log.trace(label: "\(LOG_TAG):\(#function)", "First time sending a.push.optin False")
+        } else if pushId?.isEmpty ?? true && pushEnabled {
+            updatePushStatusAndSendAnalyticsEvent(enabled: false)
+        } else if let pushId = pushId, !pushId.isEmpty, !pushEnabled {
             updatePushStatusAndSendAnalyticsEvent(enabled: true)
         }
     }
@@ -55,8 +58,7 @@ struct PushIDManager: PushIDManageable {
         let newHashedToken = token?.sha256()
         
         // if push token hasn't changed, return early
-        if (existingPushToken == nil && newHashedToken == nil) ||
-                (existingPushToken != nil && existingPushToken == newHashedToken) {
+        if existingPushToken == newHashedToken {
             return false
         }
 

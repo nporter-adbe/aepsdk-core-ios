@@ -19,7 +19,7 @@ class IdentityState {
     private let LOG_TAG = "IdentityState"
     private(set) var identityProperties: IdentityProperties
     private(set) var hitQueue: HitQueuing
-    private var pushIDManager: PushIDManageable
+    private var pushIDManager: PushIDManageable!
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -28,11 +28,11 @@ class IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties, hitQueue: HitQueuing, pushIDManager: PushIDManageable) {
+    init(identityProperties: IdentityProperties, hitQueue: HitQueuing) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
         self.hitQueue = hitQueue
-        self.pushIDManager = pushIDManager
+        // TODO: self.pushIDManager = pushIDManager
     }
     
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
