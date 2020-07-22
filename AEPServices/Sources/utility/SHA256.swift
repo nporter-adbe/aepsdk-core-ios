@@ -13,25 +13,33 @@ import Foundation
 import CommonCrypto
 
 // Ref: https://stackoverflow.com/questions/25388747/sha256-in-swift
-public extension Data {
-    /// Hashes this data with shag 256
-    /// - Returns: This data hashed with sha256
-    func sha256() -> Data? {
-        guard let res = NSMutableData(length: Int(CC_SHA256_DIGEST_LENGTH)) else { return nil }
-        CC_SHA256((self as NSData).bytes, CC_LONG(count), res.mutableBytes.assumingMemoryBound(to: UInt8.self))
-        return res as Data
-    }
-}
-
 public extension String {
     /// Hashes this data with shah 256
     /// - Returns: This string hashed with sha256
     func sha256() -> String? {
-        guard
-            let data = self.data(using: String.Encoding.utf8),
-            let shaData = data.sha256()
-            else { return nil }
-        let rc = shaData.base64EncodedString(options: [])
-        return rc
+        if let stringData = self.data(using: String.Encoding.utf8) {
+            return hexStringFromData(input: digest(input: stringData as NSData))
+        }
+        
+        return nil
+    }
+
+    private func digest(input : NSData) -> NSData {
+        let digestLength = Int(CC_SHA256_DIGEST_LENGTH)
+        var hash = [UInt8](repeating: 0, count: digestLength)
+        CC_SHA256(input.bytes, UInt32(input.length), &hash)
+        return NSData(bytes: hash, length: digestLength)
+    }
+
+    private func hexStringFromData(input: NSData) -> String {
+        var bytes = [UInt8](repeating: 0, count: input.length)
+        input.getBytes(&bytes, length: input.length)
+
+        var hexString = ""
+        for byte in bytes {
+            hexString += String(format:"%02x", UInt8(byte))
+        }
+
+        return hexString
     }
 }
