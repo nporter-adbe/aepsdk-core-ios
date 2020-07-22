@@ -19,6 +19,7 @@ class IdentityState {
     private let LOG_TAG = "IdentityState"
     private(set) var identityProperties: IdentityProperties
     private(set) var hitQueue: HitQueuing
+    private var pushIDManager: PushIDManageable
     #if DEBUG
     var lastValidConfig: [String: Any] = [:]
     #else
@@ -27,10 +28,11 @@ class IdentityState {
     
     /// Creates a new `IdentityState` with the given identity properties
     /// - Parameter identityProperties: identity
-    init(identityProperties: IdentityProperties, hitQueue: HitQueuing) {
+    init(identityProperties: IdentityProperties, hitQueue: HitQueuing, pushIDManager: PushIDManageable) {
         self.identityProperties = identityProperties
         self.identityProperties.loadFromPersistence()
         self.hitQueue = hitQueue
+        self.pushIDManager = pushIDManager
     }
     
     /// Determines if we have all the required pieces of information, such as configuration to process a sync identifiers call
@@ -70,7 +72,12 @@ class IdentityState {
             return nil
         }
         
-        // TODO: Save push ID AMSDK-10262
+        // Update push identifier if present
+        if let pushId = event.dpids?.values.first {
+            // update push identifiers
+            identityProperties.pushIdentifier = pushId
+            pushIDManager.updatePushId(pushId: pushId)
+        }
         
         // generate customer ids
         let authState = event.authenticationState
@@ -186,9 +193,9 @@ class IdentityState {
             identityProperties.locationHint = nil
             identityProperties.customerIds?.removeAll()
 
-            // TODO: Clear AID from analytics
-            // TODO: Update push ID AMSDK-10262
+            // TODO: AMSDK-10268 Clear AID from analytics
             
+            pushIDManager.updatePushId(pushId: nil)
             identityProperties.saveToPersistence()
             createSharedState(identityProperties.toEventData(), event)
         } else if identityProperties.mid == nil {

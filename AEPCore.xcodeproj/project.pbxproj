@@ -10,6 +10,7 @@
 		21234E2824C8A4F200AAC8DE /* SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2724C8A4F200AAC8DE /* SHA256.swift */; };
 		21234E2B24C8A50C00AAC8DE /* PushIDManageable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */; };
 		21234E2C24C8A50C00AAC8DE /* PushIDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */; };
+		21234E2E24C8B94500AAC8DE /* PushIDManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2D24C8B94500AAC8DE /* PushIDManagerTests.swift */; };
 		21315BB524575ED200D1B254 /* AEPCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21315BB424575ED200D1B254 /* AEPCore.swift */; };
 		2131A1B42465D81E00F1392D /* EventHub+Testable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2131A1B32465D81E00F1392D /* EventHub+Testable.swift */; };
 		213C8BD524252302009F780A /* MockExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213C8BD424252302009F780A /* MockExtension.swift */; };
@@ -340,6 +341,7 @@
 		21234E2724C8A4F200AAC8DE /* SHA256.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SHA256.swift; sourceTree = "<group>"; };
 		21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushIDManageable.swift; sourceTree = "<group>"; };
 		21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushIDManager.swift; sourceTree = "<group>"; };
+		21234E2D24C8B94500AAC8DE /* PushIDManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushIDManagerTests.swift; sourceTree = "<group>"; };
 		21315BB424575ED200D1B254 /* AEPCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AEPCore.swift; path = Sources/AEPCore.swift; sourceTree = "<group>"; };
 		2131A1B32465D81E00F1392D /* EventHub+Testable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "EventHub+Testable.swift"; sourceTree = "<group>"; };
 		213C8BD424252302009F780A /* MockExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockExtension.swift; sourceTree = "<group>"; };
@@ -1130,6 +1132,7 @@
 				3FE6DE7224C643620065EA05 /* URLAppenderTests.swift */,
 				3FE6DE6F24C643610065EA05 /* URLQueryItem+IdentityTests.swift */,
 				218E01BF24C7595000BEC470 /* HitQueuing+PrivacyTests.swift */,
+				21234E2D24C8B94500AAC8DE /* PushIDManagerTests.swift */,
 				3FE6DE3E24C642330065EA05 /* Info.plist */,
 			);
 			name = AEPIdentityTests;
@@ -1829,6 +1832,7 @@
 				3FE6DE8324C643620065EA05 /* IdentityPropertiesTests.swift in Sources */,
 				3FE6DE7C24C643620065EA05 /* IdentityStateTests.swift in Sources */,
 				3FE6DE7D24C643620065EA05 /* AEPIdentity+IdentityTests.swift in Sources */,
+				21234E2E24C8B94500AAC8DE /* PushIDManagerTests.swift in Sources */,
 				3FE6DE8124C643620065EA05 /* NetworkService+IdentityTests.swift in Sources */,
 				3FE6DE8224C643620065EA05 /* AEPIdentityTests.swift in Sources */,
 				3FE6DE7A24C643620065EA05 /* URL+IdentityTests.swift in Sources */,

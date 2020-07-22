@@ -10,10 +10,11 @@ governing permissions and limitations under the License.
 */
 
 import Foundation
+import AEPEventHub
 import AEPServices
 
 struct PushIDManager: PushIDManageable {
-    var pushEnabled: Bool {
+    private var pushEnabled: Bool {
         get {
             return dataStore.getBool(key: IdentityConstants.DataStoreKeys.PUSH_ENABLED) ?? false
         }
@@ -52,7 +53,8 @@ struct PushIDManager: PushIDManageable {
 
         let existingPushToken = properties.pushIdentifier
         let newHashedToken = token?.sha256()
-
+        
+        // if push token hasn't changed, return early
         if (existingPushToken == nil && newHashedToken == nil) ||
                 (existingPushToken != nil && existingPushToken == newHashedToken) {
             return false
@@ -65,10 +67,10 @@ struct PushIDManager: PushIDManageable {
 
     private mutating func updatePushStatusAndSendAnalyticsEvent(enabled: Bool) {
         pushEnabled = enabled
-
-        let contextData = [IdentityConstants.EventDataKeys.EVENT_PUSH_STATUS: enabled ? "True": "False"]
-        let eventData = [IdentityConstants.EventDataKeys.Analytics.TRACK_ACTION: IdentityConstants.EventDataKeys.PUSH_ID_ENABLED_ACTION_NAME,
-                         IdentityConstants.EventDataKeys.Analytics.CONTEXT_DATA: contextData] as [String : Any]
+        let pushStatusStr = enabled ? "True": "False"
+        let contextData = [IdentityConstants.EventDataKeys.EVENT_PUSH_STATUS: pushStatusStr]
+        let eventData = [IdentityConstants.Analytics.TRACK_ACTION: IdentityConstants.EventDataKeys.PUSH_ID_ENABLED_ACTION_NAME,
+                         IdentityConstants.Analytics.CONTEXT_DATA: contextData] as [String : Any]
 
         let event = Event(name: "AnalyticsForIdentityRequest", type: .analytics, source: .requestContent, data: eventData)
         eventDispatcher(event)

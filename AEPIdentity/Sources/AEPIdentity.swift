@@ -32,7 +32,7 @@ class AEPIdentity: Extension {
         }
 
         let hitQueue = PersistentHitQueue(dataQueue: dataQueue, processor: IdentityHitProcessor(responseHandler: handleNetworkResponse(entity:responseData:)))
-        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: hitQueue)
+//        state = IdentityState(identityProperties: IdentityProperties(), hitQueue: hitQueue, pushIDManager: PushIDManager())
     }
 
     func onRegistered() {
