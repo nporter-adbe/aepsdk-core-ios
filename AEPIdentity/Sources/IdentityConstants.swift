@@ -70,6 +70,7 @@ struct IdentityConstants {
     struct DataStoreKeys {
         static let IDENTITY_PROPERTIES = "identitiesproperties"
         static let PUSH_ENABLED = "ADOBEMOBILE_PUSH_ENABLED"
+        static let ANALYTICS_PUSH_SYNC = "ADOBEMOBILE_ANALYTICS_PUSH_SYNC"
     }
     
     struct URLKeys {

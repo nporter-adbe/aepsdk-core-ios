@@ -25,6 +25,16 @@ struct PushIDManager: PushIDManageable {
             dataStore.set(key: IdentityConstants.DataStoreKeys.PUSH_ENABLED, value: newValue)
         }
     }
+    
+    private var analyticsSynced: Bool {
+        get {
+            return dataStore.getBool(key: IdentityConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC) ?? false
+        }
+
+        set {
+            dataStore.set(key: IdentityConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC, value: newValue)
+        }
+    }
 
     private var dataStore: NamedKeyValueStore
     private var eventDispatcher: (Event) -> ()
@@ -35,10 +45,16 @@ struct PushIDManager: PushIDManageable {
     }
 
     mutating func updatePushId(pushId: String?) {
-        if !processPushToken(token: pushId) {
+        if !pushIdHasChanged(newPushId: pushId) {
             // Provided push token matches existing push token. Push settings will not be re-sent to Analytics
             return
         }
+        
+        //push ID has changed, update it in local storage
+        var properties = IdentityProperties()
+        properties.loadFromPersistence()
+        properties.pushIdentifier = pushId?.sha256()
+        properties.saveToPersistence()
 
         if pushId?.isEmpty ?? true && !pushEnabled {
             updatePushStatusAndSendAnalyticsEvent(enabled: false)
@@ -49,24 +65,29 @@ struct PushIDManager: PushIDManageable {
             updatePushStatusAndSendAnalyticsEvent(enabled: true)
         }
     }
-
-    private func processPushToken(token: String?) -> Bool {
+    
+    /// Compares the provided newPushId against the one in data store (if exists)
+    /// - Parameter newPushId: the new push identifier as a string, not hashed yet
+    /// - Returns: true if the provided push id does not match the existing one
+    private mutating func pushIdHasChanged(newPushId: String?) -> Bool {
         var properties = IdentityProperties()
         properties.loadFromPersistence()
 
-        let existingPushToken = properties.pushIdentifier
-        let newHashedToken = token?.sha256()
+        let existingPushId = properties.pushIdentifier ?? ""
+        let newHashedId = newPushId?.sha256() ?? ""
+        let pushIdsMatch = existingPushId == newHashedId
         
-        // if push token hasn't changed, return early
-        if existingPushToken == newHashedToken {
+        // AMSDK-10074 process the update only if the value changed or if this is not the first time setting the push token to null
+        if (pushIdsMatch && !newHashedId.isEmpty) || (pushIdsMatch && analyticsSynced) {
             return false
         }
-
-        properties.pushIdentifier = newHashedToken
-        properties.saveToPersistence()
+        
+        analyticsSynced = true // set analytics sync flag to true
         return true
     }
-
+    
+    /// Updates the push enabled flag in the data store and dispatches an analytics request content event with the push enabled flag
+    /// - Parameter enabled: a boolean flag indicating if push is enabled or disabled
     private mutating func updatePushStatusAndSendAnalyticsEvent(enabled: Bool) {
         pushEnabled = enabled
         let pushStatusStr = enabled ? "True": "False"

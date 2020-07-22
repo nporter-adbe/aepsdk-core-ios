@@ -32,7 +32,7 @@ class PushIDManagerTests: XCTestCase {
         AEPServiceProvider.shared.namedKeyValueService = MockDataStore()
     }
     
-    /// Tests that when we have a push id saved that we update to a new ID and dispatch analytics events
+    /// Tests that when we set the first push id to nil and the existing push id is nil that we dispatch a analytics event
     func testUpdatePushIdNilExistingIdUpdatesToNil() {
         // setup
         let expectation = XCTestExpectation(description: "Analytics events should be dispatched with the push status")
@@ -41,6 +41,27 @@ class PushIDManagerTests: XCTestCase {
             let contextData = event.data?[IdentityConstants.Analytics.CONTEXT_DATA] as? [String: String]
             XCTAssertEqual(contextData?[IdentityConstants.EventDataKeys.EVENT_PUSH_STATUS], "False") // push status should be set to true
             XCTAssertEqual(event.data?[IdentityConstants.Analytics.TRACK_ACTION] as? String, IdentityConstants.EventDataKeys.PUSH_ID_ENABLED_ACTION_NAME)
+            expectation.fulfill()
+        })
+        
+        // test
+        pushIdManager.updatePushId(pushId: nil)
+        
+        // verify
+        wait(for: [expectation], timeout: 0.5)
+        var props = IdentityProperties()
+        props.loadFromPersistence()
+        XCTAssertNil(props.pushIdentifier) // push identifier should be nil
+    }
+    
+    /// Ensures that we do not dispatch an analytics event when analytics sync flag is true
+    func testUpdatePushIdNilExistingIdUpdatesToNilAnalyticsSyncTrue() {
+        // setup
+        let expectation = XCTestExpectation(description: "Analytics events should not be dispatched with the push status")
+        expectation.isInverted = true
+        AEPServiceProvider.shared.namedKeyValueService.set(collectionName: "TestCollection", key: IdentityConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC, value: true)
+
+        pushIdManager = PushIDManager(dataStore: NamedKeyValueStore(name: "PushIDManagerTests"), eventDispatcher: { (event) in
             expectation.fulfill()
         })
         
