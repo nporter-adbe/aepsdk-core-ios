@@ -17,6 +17,10 @@ public extension String {
     /// Hashes this data with shah 256
     /// - Returns: This string hashed with sha256
     func sha256() -> String? {
+        if isEmpty {
+            return ""
+        }
+        
         if let stringData = self.data(using: String.Encoding.utf8) {
             return hexStringFromData(input: digest(input: stringData as NSData))
         }
