@@ -16,7 +16,14 @@ import CommonCrypto
 
 /// Defines instances that can manage a push identifier
 protocol PushIDManageable {
+    
+    /// Creates a new `PushIDManageable`
+    /// - Parameters:
+    ///   - dataStore: the datastore to store push data in
+    ///   - eventDispatcher: a function which can dispatch an `Event` to the `EventHub`
     init(dataStore: NamedKeyValueStore, eventDispatcher: @escaping (Event) -> ())
-
+    
+    /// Updates the push identifier
+    /// - Parameter pushId: the new push identifier
     mutating func updatePushId(pushId: String?)
 }

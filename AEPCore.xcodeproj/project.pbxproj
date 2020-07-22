@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2116B27F24C8D713009CBADD /* SHA256Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2116B27E24C8D713009CBADD /* SHA256Tests.swift */; };
 		21234E2824C8A4F200AAC8DE /* SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2724C8A4F200AAC8DE /* SHA256.swift */; };
 		21234E2B24C8A50C00AAC8DE /* PushIDManageable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */; };
 		21234E2C24C8A50C00AAC8DE /* PushIDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */; };
@@ -338,6 +339,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2116B27E24C8D713009CBADD /* SHA256Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256Tests.swift; sourceTree = "<group>"; };
 		21234E2724C8A4F200AAC8DE /* SHA256.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SHA256.swift; sourceTree = "<group>"; };
 		21234E2924C8A50B00AAC8DE /* PushIDManageable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushIDManageable.swift; sourceTree = "<group>"; };
 		21234E2A24C8A50C00AAC8DE /* PushIDManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushIDManager.swift; sourceTree = "<group>"; };
@@ -906,6 +908,7 @@
 				3F03981224BE61520019F095 /* ThreadSafeArrayTests.swift */,
 				3F03981324BE61520019F095 /* URLEncoderTests.swift */,
 				3F03981424BE61520019F095 /* ThreadSafeDictionaryTests.swift */,
+				2116B27E24C8D713009CBADD /* SHA256Tests.swift */,
 			);
 			path = utility;
 			sourceTree = "<group>";
@@ -1686,6 +1689,7 @@
 				3F03982124BE61520019F095 /* NamedKeyValueStoreTest.swift in Sources */,
 				3F03982724BE61520019F095 /* ThreadSafeDictionaryTests.swift in Sources */,
 				3F03982624BE61520019F095 /* URLEncoderTests.swift in Sources */,
+				2116B27F24C8D713009CBADD /* SHA256Tests.swift in Sources */,
 				3F03981924BE61520019F095 /* AEPURLServiceTest.swift in Sources */,
 				3F03982324BE61520019F095 /* PersistentHitQueueTests.swift in Sources */,
 				3F03981724BE61520019F095 /* AEPDataQueueService+Testable.swift in Sources */,
