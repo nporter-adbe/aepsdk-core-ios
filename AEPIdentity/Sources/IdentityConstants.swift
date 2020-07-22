@@ -27,8 +27,6 @@ struct IdentityConstants {
     static let DEFAULT_SERVER = "dpm.demdex.net"
     static let CID_DELIMITER = "%01"
     static let ADID_DSID = "DSID_20915"
-    static let EVENT_PUSH_STATUS = "a.push.optin"
-    static let PUSH_ID_ENABLED_ACTION_NAME = "Push"
     
     struct SharedStateKeys {
         static let CONFIGURATION = "com.adobe.module.configuration"
@@ -45,6 +43,8 @@ struct IdentityConstants {
     struct Analytics {
         static let TRACK_ACTION = "action"
         static let CONTEXT_DATA = "contextdata"
+        static let ANALYTICS_ID = "aid"
+        static let VISITOR_IDENTIFIER  = "vid"
     }
     
     struct EventDataKeys {
@@ -63,6 +63,8 @@ struct IdentityConstants {
         static let VISITOR_ID_LOCATION_HINT = "locationhint"
         static let VISITOR_IDS_LAST_SYNC = "lastsync"
         static let MCPNS_DPID = "20920"
+        static let EVENT_PUSH_STATUS = "a.push.optin"
+        static let PUSH_ID_ENABLED_ACTION_NAME = "Push"
     }
     
     struct DataStoreKeys {
@@ -84,9 +86,5 @@ struct IdentityConstants {
         static let TIMEOUT = TimeInterval(2000)
         static let SERVER = "dpm.demdex.net"
     }
-    
-    struct Analytics {
-        static let ANALYTICS_ID = "aid"
-        static let VISITOR_IDENTIFIER  = "vid"
-    }
+
 }
