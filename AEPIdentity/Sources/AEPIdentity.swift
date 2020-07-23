@@ -42,6 +42,10 @@ class AEPIdentity: Extension {
         registerListener(type: .genericIdentity, source: .requestContent, listener: handleIdentityRequest)
         registerListener(type: .configuration, source: .requestIdentity, listener: receiveConfigurationIdentity(event:))
         registerListener(type: .configuration, source: .responseContent, listener: handleConfigurationResponse)
+        
+        let pendingResolver = createPendingSharedState(event: nil)
+        let configSharedState = getSharedState(extensionName: IdentityConstants.SharedStateKeys.CONFIGURATION, event: nil)?.value
+        state?.bootup(configSharedState: configSharedState, eventDispatcher: dispatch(event:), pendingResolver: pendingResolver)
     }
 
     func onUnregistered() {}

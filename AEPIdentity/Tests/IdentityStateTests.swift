@@ -34,6 +34,12 @@ class IdentityStateTests: XCTestCase {
 
     }
     
+    // MARK: bootup(...) tests
+    
+    func testBootupEmptyConfigSharedState() {
+        
+    }
+    
     // MARK: syncIdentifiers(...) tests
     
     /// Tests that syncIdentifiers appends the MID and the two custom IDs to the visitor ID list
