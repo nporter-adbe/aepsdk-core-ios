@@ -26,15 +26,15 @@ class IdentityStateTests: XCTestCase {
     }
 
     var mockPushIdManager: MockPushIDManager!
-    
+
     override func setUp() {
         AEPServiceProvider.shared.namedKeyValueService = MockDataStore()
         mockPushIdManager = MockPushIDManager()
         state = IdentityState(identityProperties: IdentityProperties(), hitQueue: MockHitQueue(processor: MockHitProcessor()), pushIdManager: mockPushIdManager)
     }
-    
+
     // MARK: syncIdentifiers(...) tests
-    
+
     /// Tests that syncIdentifiers appends the MID and the two custom IDs to the visitor ID list
     func testSyncIdentifiersHappyIDs() {
         // setup
@@ -44,7 +44,7 @@ class IdentityStateTests: XCTestCase {
         state.lastValidConfig = configSharedState
         // test
         let eventData = state.syncIdentifiers(event: Event.fakeSyncIDEvent())
-        
+
         // verify
         XCTAssertEqual(2, eventData!.count)
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
@@ -52,7 +52,22 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual(2, idList?.count)
         XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
-    
+
+    /// Tests that syncIdentifiers returns nil and does not queue a hit when the user is opted-out
+    func testSyncIdentifiersHappyIDsOptedOut() {
+        // setup
+        let configSharedState = [IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID: "test-org",
+                                 IdentityConstants.Configuration.EXPERIENCE_CLOUD_SERVER: "test-server",
+                                 IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut] as [String : Any]
+        state.lastValidConfig = configSharedState
+        // test
+        let eventData = state.syncIdentifiers(event: Event.fakeSyncIDEvent())
+
+        // verify
+        XCTAssertNil(eventData)
+        XCTAssertTrue(mockHitQueue.queuedHits.isEmpty) // hit should NOT be queued in the hit queue
+    }
+
     /// Tests that the push identifier is attached to the event data
     func testSyncIdentifiersHappyPushID() {
         // setup
@@ -60,17 +75,17 @@ class IdentityStateTests: XCTestCase {
                          IdentityConstants.Configuration.EXPERIENCE_CLOUD_SERVER: "test-server",
                          IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         state.lastValidConfig = configSharedState
-        
+
         // test
         let eventData = state.syncIdentifiers(event: Event.fakePushIDEvent())
-        
+
         // verify
         XCTAssertEqual(2, eventData!.count)
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
         XCTAssertEqual("test-push-id".sha256(), eventData![IdentityConstants.EventDataKeys.PUSH_IDENTIFIER] as? String)
         XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
-    
+
     /// Tests that the mid is appended and the ad id is appended to the visitor id list
     func testSyncIdentifiersHappyAdID() {
         // setup
@@ -78,10 +93,10 @@ class IdentityStateTests: XCTestCase {
                                  IdentityConstants.Configuration.EXPERIENCE_CLOUD_SERVER: "test-server",
                                  IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
         state.lastValidConfig = configSharedState
-        
+
         // test
         let eventData = state.syncIdentifiers(event: Event.fakeAdIDEvent())
-        
+
         // verify
         XCTAssertEqual(3, eventData!.count)
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
@@ -94,7 +109,7 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual("DSID_20915", customId?.type)
         XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
-    
+
     /// Tests that the ad is is correctly preserved when the same ad id is sync'd
     func testSyncIdentifiersAdIDIsSame() {
         // setup
@@ -105,17 +120,17 @@ class IdentityStateTests: XCTestCase {
         props.advertisingIdentifier = "test-ad-id"
         state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()), pushIdManager: mockPushIdManager)
         state.lastValidConfig = configSharedState
-        
+
         // test
         let eventData = state.syncIdentifiers(event: Event.fakeAdIDEvent())
-        
+
         // verify
         XCTAssertEqual(2, eventData!.count)
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
         XCTAssertEqual(props.advertisingIdentifier, eventData![IdentityConstants.EventDataKeys.ADVERTISING_IDENTIFIER] as? String)
         XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
-    
+
     /// Tests that the location hint and blob are present int he event data
     func testSyncIdentifiersAppendsBlobAndLocationHint() {
         // setup
@@ -127,10 +142,10 @@ class IdentityStateTests: XCTestCase {
         props.blob = "blobby"
         state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()), pushIdManager: mockPushIdManager)
         state.lastValidConfig = configSharedState
-        
+
         // test
         let eventData = state.syncIdentifiers(event: Event.fakePushIDEvent())
-        
+
         // verify
         XCTAssertEqual(4, eventData!.count)
         XCTAssertNotNil(eventData![IdentityConstants.EventDataKeys.VISITOR_ID_MID])
@@ -139,7 +154,7 @@ class IdentityStateTests: XCTestCase {
         XCTAssertEqual("test-push-id".sha256(), eventData![IdentityConstants.EventDataKeys.PUSH_IDENTIFIER] as? String)
         XCTAssertFalse(mockHitQueue.queuedHits.isEmpty) // hit should be queued in the hit queue
     }
-    
+
     /// Tests that a hit is not queued for is sync event
     func testSyncIdentifiersDoesNotQueue() {
         // setup
@@ -152,73 +167,73 @@ class IdentityStateTests: XCTestCase {
         props.lastSync = Date() // set last sync to now
         state = IdentityState(identityProperties: props, hitQueue: MockHitQueue(processor: MockHitProcessor()), pushIdManager: mockPushIdManager)
         state.lastValidConfig = configSharedState
-        
+
         // test
         let data = [IdentityConstants.EventDataKeys.IS_SYNC_EVENT: true] as [String : Any]
         let _ = state.syncIdentifiers(event: Event(name: "ID Sync Test Event", type: .identity, source: .requestIdentity, data: data))
-        
+
         // verify
         XCTAssertTrue(mockHitQueue.queuedHits.isEmpty) // hit should NOT be queued in the hit queue
     }
-    
+
     func testSyncIdentifiersWhenPrivacyIsOptIn() {
         // setup
         state.lastValidConfig = [IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID: "latestOrg", IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
-        
+
         // test
         let eventData = state.syncIdentifiers(event: Event.fakeSyncIDEvent())
-        
+
         // verify
         XCTAssertNotNil(eventData)
     }
-    
+
     /// We are ready to process the event when the config shared state has an opt-in privacy status but our previous config has an opt-out
-    func testSyncIdentifiersReturnTrueWhenLatestPrivacyIsOptOut() {
+    func testSyncIdentifiersReturnNilWhenLatestPrivacyIsOptOut() {
         // setup
         state.lastValidConfig = [IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID: "latestOrg", IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedOut] as [String : Any]
-        
+
         // test
         let eventData = state.syncIdentifiers(event: Event.fakeSyncIDEvent())
-        
+
         // verify
         XCTAssertNil(eventData)
     }
-    
+
     // MARK: readyForSyncIdentifiers(...)
-    
+
     /// When no valid configuration is available we should return false to wait for a valid configuration
     func testReadyForSyncIdentifiersNoValidConfig() {
         // test
         let readyForSync = state.readyForSyncIdentifiers(event: Event.fakeSyncIDEvent(), configurationSharedState: [:])
-        
+
         // verify
         XCTAssertFalse(readyForSync)
     }
-    
+
     func testReadyForSyncIdentifiersShouldSyncWithEmptyCurrentConfigButValidLatestConfig() {
         // setup
         state.lastValidConfig = [IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID: "latestOrg", IdentityConstants.Configuration.GLOBAL_CONFIG_PRIVACY: PrivacyStatus.optedIn] as [String : Any]
-        
+
         // test
         let readyForSync = state.readyForSyncIdentifiers(event: Event.fakeSyncIDEvent(), configurationSharedState: [:])
-        
+
         // verify
         XCTAssertTrue(readyForSync)
     }
-    
+
     func testReadyForSyncIdentifiersShouldNotSyncWithEmptyCurrentConfigAndNilLatestConfig() {
         // setup
         let configSharedState = [IdentityConstants.Configuration.EXPERIENCE_CLOUD_ORGID: ""] as [String : Any]
-        
+
         // test
         let readyForSync = state.readyForSyncIdentifiers(event: Event.fakeSyncIDEvent(), configurationSharedState: configSharedState)
-        
+
         // verify
         XCTAssertFalse(readyForSync)
     }
-    
+
     // MARK: handleHitResponse(...) tests
-    
+
     /// Tests that when a non-opt out response is handled that we update the last sync and other identity properties, along with dispatching two identity events
     func testHandleHitResponseHappy() {
         // setup
@@ -353,9 +368,9 @@ class IdentityStateTests: XCTestCase {
         wait(for: [dispatchedEventExpectation], timeout: 0.5)
         XCTAssertNotEqual(props.lastSync, state.identityProperties.lastSync) // sync should be updated regardless of response
     }
-    
+
     // MARK: processPrivacyChange(...)
-    
+
     /// Tests that when the event data is empty that we do not update shared state or the push identifier
     func testProcessPrivacyChangeNoPrivacyInEventData() {
         // setup
@@ -492,12 +507,12 @@ private extension Event {
         let data = [IdentityConstants.EventDataKeys.IDENTIFIERS: ids, IdentityConstants.EventDataKeys.IS_SYNC_EVENT: true] as [String : Any]
         return Event(name: "Fake Sync Event", type: .identity, source: .requestReset, data: data)
     }
-    
+
     static func fakePushIDEvent() -> Event {
         let data = [IdentityConstants.EventDataKeys.PUSH_IDENTIFIER: "test-push-id"]
         return Event(name: "Fake Sync Event", type: .genericIdentity, source: .requestReset, data: data)
     }
-    
+
     static func fakeAdIDEvent() -> Event {
         let data = [IdentityConstants.EventDataKeys.ADVERTISING_IDENTIFIER: "test-ad-id"]
         return Event(name: "Fake Sync Event", type: .genericIdentity, source: .requestReset, data: data)
