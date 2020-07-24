@@ -43,9 +43,11 @@ class AEPIdentity: Extension {
         registerListener(type: .configuration, source: .requestIdentity, listener: receiveConfigurationIdentity(event:))
         registerListener(type: .configuration, source: .responseContent, listener: handleConfigurationResponse)
         
-        let pendingResolver = createPendingSharedState(event: nil)
         let configSharedState = getSharedState(extensionName: IdentityConstants.SharedStateKeys.CONFIGURATION, event: nil)?.value
-        state?.bootup(configSharedState: configSharedState, eventDispatcher: dispatch(event:), pendingResolver: pendingResolver)
+        if state?.bootup(configSharedState: configSharedState, eventDispatcher: dispatch(event:)) ?? false, let props = state?.identityProperties {
+            // privacy was opt-out, share state
+            createSharedState(data: props.toEventData(), event: nil)
+        }
     }
 
     func onUnregistered() {}
