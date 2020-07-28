@@ -66,6 +66,7 @@ struct LifecycleState {
         guard let previousSessionInfo =  lifecycleSession.start(date: date, sessionTimeout: sessionTimeout, coreMetrics: defaultMetrics) else { return nil }
         
         var lifecycleData = LifecycleContextData()
+        lifecycleContextData = LifecycleContextData() // clear previous lifecycle data
         
         if isInstall() {
             metricsBuilder.addInstallData().addLaunchEventData()
