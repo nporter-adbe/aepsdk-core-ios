@@ -64,4 +64,10 @@ class MockExtension: TestableExtension {
     required init(runtime: ExtensionRuntime) {
         self.runtime = runtime
     }
+    
+    func onRegistered() {}
+    func onUnregistered() {}
+    func readyForEvent(_ event: Event) -> Bool {
+        return true
+    }
 }

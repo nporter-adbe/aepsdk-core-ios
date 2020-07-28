@@ -12,25 +12,19 @@ governing permissions and limitations under the License.
 
 import Foundation
 
-@testable import AEPCore
-import AEPCore
-
-class SlowMockExtension: Extension {
-    var name = "slowMockExtension"
-    var friendlyName = "slowMockExtension"
-    var version = "0.0.1"
-    var metadata: [String : String]? = nil
+/// Contains the status and value for a given shared state
+@objc public class SharedStateResult: NSObject {
+    let status: SharedStateStatus
+    let value: [String: Any]?
     
-    let runtime: ExtensionRuntime
     
-    required init(runtime: ExtensionRuntime) {
-        self.runtime = runtime
-         sleep(20) // simulate an extension doing heavy work in constructor
+    /// Creates a new shared state result with given status and value
+    /// - Parameters:
+    ///   - status: status of the shared state
+    ///   - value: value of the shared state
+    init(status: SharedStateStatus, value: [String: Any]?) {
+        self.status = status
+        self.value = value
     }
     
-    func onRegistered() {}
-    func onUnregistered() {}
-    func readyForEvent(_ event: Event) -> Bool {
-        return true
-    }
 }

@@ -10,27 +10,25 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import Foundation
+#import "MockObjcExtension.h"
 
-@testable import AEPCore
-import AEPCore
+@implementation MockObjcExtension
+@synthesize friendlyName;
+@synthesize metadata;
+@synthesize name;
+@synthesize runtime;
+@synthesize version;
 
-class SlowMockExtension: Extension {
-    var name = "slowMockExtension"
-    var friendlyName = "slowMockExtension"
-    var version = "0.0.1"
-    var metadata: [String : String]? = nil
-    
-    let runtime: ExtensionRuntime
-    
-    required init(runtime: ExtensionRuntime) {
-        self.runtime = runtime
-         sleep(20) // simulate an extension doing heavy work in constructor
-    }
-    
-    func onRegistered() {}
-    func onUnregistered() {}
-    func readyForEvent(_ event: Event) -> Bool {
-        return true
-    }
+- (nonnull instancetype)initWithRuntime:(id<ExtensionRuntime> _Nonnull)runtime {
+    return self;
 }
+
+- (void)onRegistered {}
+
+- (void)onUnregistered {}
+
+- (BOOL)readyForEvent:(Event * _Nonnull)event {
+    return YES;
+}
+
+@end

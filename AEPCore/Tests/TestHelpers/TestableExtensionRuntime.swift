@@ -13,7 +13,7 @@ governing permissions and limitations under the License.
 import Foundation
 @testable import AEPCore
 
-class TestableExtensionRuntime:ExtensionRuntime{
+class TestableExtensionRuntime: ExtensionRuntime {
     var listeners:[String:EventListener] = [:]
     var dispatchedEvents: [Event] = []
     var createdSharedStates: [[String : Any]?] = []
@@ -47,11 +47,12 @@ class TestableExtensionRuntime:ExtensionRuntime{
         }
     }
     
-    func getSharedState(extensionName: String, event: Event?) -> (value: [String : Any]?, status: SharedStateStatus)? {
-        return otherSharedStates["\(extensionName)-\(String(describing: event?.id))"] ?? nil
+    func getSharedState(extensionName: String, event: Event?) -> SharedStateResult? {
+        guard let result = otherSharedStates["\(extensionName)-\(String(describing: event?.id))"] else { return nil }
+        return SharedStateResult(status: result.status, value: result.value)
     }
     
-    func simulateSharedState(extensionName: String, event: Event?, data: (value: [String : Any]?, status: SharedStateStatus)){
+    func simulateSharedState(extensionName: String, event: Event?, data: (value: [String : Any]?, status: SharedStateStatus)) {
         otherSharedStates["\(extensionName)-\(String(describing: event?.id))"] = data
     }
     
