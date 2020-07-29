@@ -13,7 +13,7 @@ import Foundation
 import AEPCore
 import AEPServices
 
-@objc public class Identity: NSObject, Extension {
+@objc(AEPIdentity) public class Identity: NSObject, Extension {
     public let runtime: ExtensionRuntime
 
     public let name = IdentityConstants.EXTENSION_NAME

@@ -13,7 +13,7 @@ import Foundation
 import AEPServices
 import AEPCore
 
-public class Lifecycle: Extension {
+@objc(AEPLifecycle) public class Lifecycle: NSObject, Extension {
     public let name = LifecycleConstants.EXTENSION_NAME
     public let friendlyName = LifecycleConstants.FRIENDLY_NAME
     public let version = LifecycleConstants.EXTENSION_VERSION
