@@ -13,13 +13,22 @@ governing permissions and limitations under the License.
 #import "MockObjcExtension.h"
 
 @implementation MockObjcExtension
-@synthesize friendlyName;
-@synthesize metadata;
+
 @synthesize name;
+@synthesize friendlyName;
+@synthesize extensionVersion;
+@synthesize metadata;
 @synthesize runtime;
-@synthesize version;
 
 - (nonnull instancetype)initWithRuntime:(id<ExtensionRuntime> _Nonnull)runtime {
+    self = [super init];
+    
+    name = @"MockObjcExtension";
+    friendlyName = name;
+    extensionVersion = @"0.0.1";
+    metadata = @{};
+//    self.runtime = runtime;
+    
     return self;
 }
 

@@ -22,13 +22,13 @@ import Foundation
     var friendlyName: String { get }
 
     /// Version of the extension
-    var version: String { get }
+    var extensionVersion: String { get }
     
     /// Optional metadata to be provided to the `EventHub`
     var metadata: [String: String]? { get }
     
     /// Provides the methods can be used by extension
-    var runtime: ExtensionRuntime {  get}
+    var runtime: ExtensionRuntime { get }
 
     /// Invoked when the extension has been registered by the `EventHub`
     func onRegistered()
@@ -44,7 +44,7 @@ import Foundation
     func readyForEvent(_ event: Event) -> Bool
 
     // An `Extension` must support parameterless initializer
-    init(runtime:ExtensionRuntime)
+    init(runtime: ExtensionRuntime)
 }
 
 /// Contains methods for developers to interact with in their own extensions
