@@ -25,7 +25,7 @@ import AEPServices
     /// Registers the extensions with Core and begins event processing
     /// - Parameter extensions: The extensions to be registered
     /// - Parameter completion: Closure to run when extensions have been registered
-    public static func registerExtensions(_ extensions: [Extension.Type], _ completion: (() -> Void)? = nil) {
+    @objc public static func registerExtensions(_ extensions: [Extension.Type], _ completion: (() -> Void)? = nil) {
         let registeredCounter = AtomicCounter()
         
         // TODO: Add configuration as a default extension to be registered
