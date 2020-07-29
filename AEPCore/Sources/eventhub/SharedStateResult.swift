@@ -14,9 +14,8 @@ import Foundation
 
 /// Contains the status and value for a given shared state
 @objc public class SharedStateResult: NSObject {
-    let status: SharedStateStatus
-    let value: [String: Any]?
-    
+    public let status: SharedStateStatus
+    public let value: [String: Any]?
     
     /// Creates a new shared state result with given status and value
     /// - Parameters:
