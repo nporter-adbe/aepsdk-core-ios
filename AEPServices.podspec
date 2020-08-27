@@ -14,6 +14,6 @@ AEPServices
 
   s.source_files          = 'AEPServices/Sources/**/*.swift'
 
-  s.pod_target_xcconfig = { 'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'YES', 'SWIFT_OPTIMIZATION_LEVEL' => '-Osize' }
+  s.pod_target_xcconfig = { 'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'NO', 'SWIFT_OPTIMIZATION_LEVEL' => '-Osize' }
   s.swift_version = '5.0'
 end
