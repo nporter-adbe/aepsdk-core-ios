@@ -13,8 +13,8 @@ AEPCore
   s.ios.deployment_target = '10.0'
 
   s.swift_version = '5.0'
-  
-  s.pod_target_xcconfig = { 'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'YES' }
+
+  s.pod_target_xcconfig = { 'BUILD_LIBRARY_FOR_DISTRIBUTION' => 'YES', 'SWIFT_OPTIMIZATION_LEVEL' => '-Osize' }
 
   s.dependency 'SwiftRulesEngine'
   s.dependency 'AEPServices'
